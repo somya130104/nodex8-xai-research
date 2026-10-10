@@ -1,0 +1,28 @@
+# Data files
+*.csv
+*.xlsx
+*.xls
+*.json
+!model_config.json
+
+# Model artifacts
+*.pkl
+*.pt
+*.pth
+*.h5
+
+# Logs and system files
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+env/
+.env
+
+# Images/Charts (can be large, but maybe we want to keep them? Let's ignore them for now to keep repo small)
+*.png
+*.jpg
+*.jpeg
