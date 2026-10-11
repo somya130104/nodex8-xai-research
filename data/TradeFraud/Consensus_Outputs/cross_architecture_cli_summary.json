@@ -1,0 +1,23 @@
+{
+    "dataset": "TradeFraud",
+    "total_model_explainer_configs": 12,
+    "total_aligned_features": 271,
+    "kendalls_w_global": 0.1718,
+    "mean_baseline_internal_spearman": 0.1676,
+    "mean_advanced_internal_spearman": 0.2262,
+    "mean_baseline_vs_advanced_spearman": 0.0273,
+    "mean_baseline_vs_advanced_top10_jaccard": 0.0803,
+    "composite_cross_architecture_cli": 0.2594,
+    "top_10_consensus_features": [
+        "cash_AvgTradePerTradingMonth",
+        "dormancy_ratio",
+        "cash_liveDays",
+        "cash_Td_Samt",
+        "cash_Td_Bamt",
+        "cash_dormancyPeriod",
+        "cash_daysTraded",
+        "cash_membershipLength",
+        "cash_preDurationLength",
+        "SscriptAvg_l_180d"
+    ]
+}

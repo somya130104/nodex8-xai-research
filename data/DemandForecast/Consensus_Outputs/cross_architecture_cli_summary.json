@@ -1,0 +1,23 @@
+{
+    "dataset": "DemandForecast",
+    "total_model_explainer_configs": 11,
+    "total_aligned_features": 49,
+    "kendalls_w_global": 0.4783,
+    "mean_baseline_internal_spearman": 0.5605,
+    "mean_advanced_internal_spearman": 0.4508,
+    "mean_baseline_vs_advanced_spearman": 0.2985,
+    "mean_baseline_vs_advanced_top10_jaccard": 0.1659,
+    "composite_cross_architecture_cli": 0.4288,
+    "top_10_consensus_features": [
+        "lag_1",
+        "SALE_M_PACK",
+        "rolling_mean_28",
+        "SALE_M_PRICE",
+        "rolling_mean_7",
+        "price_x_promo",
+        "price_per_pack",
+        "SALE_PRICE",
+        "rolling_std_28",
+        "REG_PRICE"
+    ]
+}

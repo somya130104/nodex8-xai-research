@@ -1,0 +1,17 @@
+{
+    "dataset": "DemandForecast",
+    "models": [
+        "LightGBM",
+        "LinearRegression",
+        "RandomForest",
+        "XGBoost"
+    ],
+    "n_features": 53,
+    "kendalls_w_shap": 0.7195,
+    "kendalls_w_lime": 0.8369,
+    "mean_pairwise_spearman_shap": 0.6325,
+    "mean_pairwise_spearman_lime": 0.8417,
+    "mean_cross_spearman_shap_lime": 0.512,
+    "mean_cross_jaccard_top10": 0.4322,
+    "composite_cli": 0.6861
+}

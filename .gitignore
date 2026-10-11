@@ -4,12 +4,17 @@
 *.xls
 *.json
 !model_config.json
+!*summary.json
+!*metrics.json
+!*performance_scorecard.csv
+!**/Consensus_Outputs/**
 
 # Model artifacts
 *.pkl
 *.pt
 *.pth
 *.h5
+*.zip
 
 # Logs and system files
 *.log

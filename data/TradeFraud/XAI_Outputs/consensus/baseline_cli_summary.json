@@ -1,0 +1,17 @@
+{
+    "dataset": "TradeFraud",
+    "models": [
+        "Model2_XGBoost",
+        "Model3_RandomForest",
+        "Model5_LightGBM",
+        "Model6_LogReg"
+    ],
+    "n_features": 271,
+    "kendalls_w_shap": 0.5324,
+    "kendalls_w_lime": 0.6085,
+    "mean_pairwise_spearman_shap": 0.3781,
+    "mean_pairwise_spearman_lime": 0.478,
+    "mean_cross_spearman_shap_lime": 0.1787,
+    "mean_cross_jaccard_top10": 0.4263,
+    "composite_cli": 0.5391
+}

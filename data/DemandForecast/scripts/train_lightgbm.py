@@ -24,7 +24,7 @@ def load_dataset(fname):
     # Process categorical
     for col in CATEGORICAL_COLS:
         if col in df.columns:
-            df[col] = df[col].astype('category')
+            df[col] = df[col].map({'Y': 1, 'N': 0, '1': 1, '0': 0, 1: 1, 0: 0}).fillna(0)
             
     feat_cols = [c for c in df.columns if c not in EXCLUDE_COLS]
     X = df[feat_cols]
