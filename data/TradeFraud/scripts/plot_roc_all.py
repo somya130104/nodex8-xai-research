@@ -6,7 +6,6 @@ from sklearn.metrics import roc_curve, roc_auc_score
 
 DATA_DIR = "/Users/somyabhadada/nodex8/data/TradeFraud/Modeling_Data_Enriched/"
 MODEL_PATH = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model2_XGBoost/model2_xgboost.pkl"
-OUT_IMG = "/Users/somyabhadada/.gemini/antigravity-ide/brain/1d5e1c27-d371-4ffb-a6a7-9cb908b0122b/roc_chart_model2.png"
 LOCAL_OUT_IMG = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model2_XGBoost/roc_chart_model2.png"
 
 EXCLUDE_COLS = ["Client", "Client_ID", "Date", "Dispute", "Segment", "Activeness_Segment"]
@@ -51,9 +50,7 @@ plt.title("ROC Curves - Model 2 (XGBoost + Enriched Features)")
 plt.legend(loc="lower right")
 plt.grid(alpha=0.3)
 
-os.makedirs(os.path.dirname(OUT_IMG), exist_ok=True)
-plt.savefig(OUT_IMG, dpi=300, bbox_inches="tight")
+os.makedirs(os.path.dirname(LOCAL_OUT_IMG), exist_ok=True)
 plt.savefig(LOCAL_OUT_IMG, dpi=300, bbox_inches="tight")
 plt.close()
-print("Saved ROC chart to:", OUT_IMG)
 print("Saved ROC chart to:", LOCAL_OUT_IMG)

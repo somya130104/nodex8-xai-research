@@ -31,7 +31,6 @@ np.random.seed(42)
 # ── Config ────────────────────────────────────────────────────────────
 DATA_DIR   = "/Users/somyabhadada/nodex8/data/TradeFraud/Modeling_Data_Enriched/"
 OUTPUT_DIR = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model4_Autoencoder/"
-ART_DIR    = "/Users/somyabhadada/.gemini/antigravity-ide/brain/1d5e1c27-d371-4ffb-a6a7-9cb908b0122b/"
 
 EXCLUDE_COLS = ["Client", "Client_ID", "Date", "Dispute", "Segment", "Activeness_Segment"]
 EVAL_SETS = [
@@ -49,7 +48,6 @@ LR      = 1e-3
 PATIENCE = 10              # Early stopping patience
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(ART_DIR, exist_ok=True)
 
 # ── Autoencoder Model ─────────────────────────────────────────────────
 class Autoencoder(nn.Module):
@@ -237,7 +235,6 @@ ax.set_xlabel("Epoch"); ax.set_ylabel("MSE Loss")
 ax.set_title("Autoencoder Training Loss Curve — Model 4", fontweight="bold")
 ax.legend(); ax.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(ART_DIR, "ae_loss_curve.png"), dpi=200, bbox_inches="tight")
 plt.savefig(os.path.join(OUTPUT_DIR, "ae_loss_curve.png"), dpi=200, bbox_inches="tight")
 plt.close()
 
@@ -333,7 +330,6 @@ ax.set_title("ROC Curves — Model 4 (Autoencoder Anomaly Detection)", fontsize=
 ax.legend(loc="lower right", fontsize=9)
 ax.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig(os.path.join(ART_DIR, "roc_chart_model4.png"), dpi=300, bbox_inches="tight")
 plt.savefig(os.path.join(OUTPUT_DIR, "roc_chart_model4.png"), dpi=300, bbox_inches="tight")
 plt.close()
 
@@ -365,7 +361,6 @@ for i, (_, label) in enumerate(EVAL_SETS):
 plt.suptitle("Hosmer-Lemeshow Calibration — Model 4 (Autoencoder)",
              fontsize=13, fontweight="bold", y=1.01)
 plt.tight_layout()
-plt.savefig(os.path.join(ART_DIR, "hosmer_lemeshow_chart_model4.png"), dpi=300, bbox_inches="tight")
 plt.savefig(os.path.join(OUTPUT_DIR, "hosmer_lemeshow_chart_model4.png"), dpi=300, bbox_inches="tight")
 plt.close()
 

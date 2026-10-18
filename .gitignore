@@ -7,7 +7,6 @@
 !*summary.json
 !*metrics.json
 !*performance_scorecard.csv
-!**/Consensus_Outputs/**
 
 # Model artifacts
 *.pkl

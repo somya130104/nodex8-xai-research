@@ -7,7 +7,6 @@ from scipy.stats import chi2
 
 DATA_DIR = "/Users/somyabhadada/nodex8/data/TradeFraud/Modeling_Data_Enriched/"
 MODEL_PATH = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model2_XGBoost/model2_xgboost.pkl"
-OUT_IMG = "/Users/somyabhadada/.gemini/antigravity-ide/brain/1d5e1c27-d371-4ffb-a6a7-9cb908b0122b/hosmer_lemeshow_chart.png"
 LOCAL_OUT_IMG = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model2_XGBoost/hosmer_lemeshow_chart.png"
 CSV_OUT = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model2_XGBoost/hosmer_lemeshow_data.csv"
 
@@ -116,8 +115,7 @@ for i, (fname, label) in enumerate(eval_sets):
     ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-os.makedirs(os.path.dirname(OUT_IMG), exist_ok=True)
-plt.savefig(OUT_IMG, dpi=300, bbox_inches="tight")
+os.makedirs(os.path.dirname(LOCAL_OUT_IMG), exist_ok=True)
 plt.savefig(LOCAL_OUT_IMG, dpi=300, bbox_inches="tight")
 plt.close()
 
@@ -130,5 +128,4 @@ print(summary_df)
 
 print("\nHosmer-Lemeshow OOS Calibration Data Preview:")
 print(final_df[final_df['Dataset'] == 'Validation OOS'][['Decile_Rank', 'decile', 'Obs_Event', 'Exp_Event']])
-print(f"\nSaved charts to: {OUT_IMG}")
 print(f"Saved data to:   {CSV_OUT}")

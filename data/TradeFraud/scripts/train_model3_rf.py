@@ -23,7 +23,6 @@ warnings.filterwarnings("ignore")
 # ── Config ───────────────────────────────────────────────────────────
 DATA_DIR   = "/Users/somyabhadada/nodex8/data/TradeFraud/Modeling_Data_Enriched/"
 OUTPUT_DIR = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/Model3_RandomForest/"
-ART_DIR    = "/Users/somyabhadada/.gemini/antigravity-ide/brain/1d5e1c27-d371-4ffb-a6a7-9cb908b0122b/"
 
 EXCLUDE_COLS = ["Client", "Client_ID", "Date", "Dispute", "Segment", "Activeness_Segment"]
 
@@ -141,7 +140,6 @@ print(f"  OOB Score (internal estimate): {model.oob_score_:.4f}")
 
 # ── 3. Save model & config ───────────────────────────────────────────
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(ART_DIR, exist_ok=True)
 
 model_path = os.path.join(OUTPUT_DIR, "model3_rf.pkl")
 with open(model_path, "wb") as f:
@@ -204,9 +202,7 @@ ax.set_title("ROC Curves — Model 3 (Random Forest + SMOTE)", fontsize=14, font
 ax.legend(loc="lower right", fontsize=9)
 ax.grid(alpha=0.3)
 plt.tight_layout()
-roc_path = os.path.join(ART_DIR, "roc_chart_model3.png")
 roc_local = os.path.join(OUTPUT_DIR, "roc_chart_model3.png")
-plt.savefig(roc_path, dpi=300, bbox_inches="tight")
 plt.savefig(roc_local, dpi=300, bbox_inches="tight")
 plt.close()
 print(f"  ROC chart saved.")
@@ -239,9 +235,7 @@ for i, (fname, label) in enumerate(EVAL_SETS):
 plt.suptitle("Hosmer-Lemeshow Calibration — Model 3 (Random Forest + SMOTE)",
              fontsize=13, fontweight="bold", y=1.01)
 plt.tight_layout()
-hl_path  = os.path.join(ART_DIR, "hosmer_lemeshow_chart_model3.png")
 hl_local = os.path.join(OUTPUT_DIR, "hosmer_lemeshow_chart_model3.png")
-plt.savefig(hl_path, dpi=300, bbox_inches="tight")
 plt.savefig(hl_local, dpi=300, bbox_inches="tight")
 plt.close()
 
