@@ -1,5 +1,15 @@
 """
 Generate Standard LIME explanations for DemandForecast baseline models.
+
+Phase 0 fix applied (see ARCHITECTURE.md Section 9): LIME attributions used
+to be mapped back to feature names by checking whether a feature's name was
+a *substring* of LIME's text condition (e.g. "lag_14 <= 0.57"). Because
+"lag_1" is a substring of "lag_14", and "SALE_PRICE" is a substring of
+"C_SALE_PRICE", that silently credited one feature's weight to a different
+feature — 15 features (every C_* competitor feature, lag_14, day_of_week,
+discount_pct, etc.) ended up with a LIME weight of exactly zero for every
+model. The fix uses exp.as_map(), which LIME returns as (feature_index,
+weight) pairs with no string parsing involved.
 """
 import os
 import pickle
@@ -118,14 +128,14 @@ def run_lime():
             features_used = feat_cols_tree
 
         lime_values = np.zeros((len(X_eval_proc), len(features_used)))
-        
+
         for i, row in enumerate(X_eval_proc):
             exp = explainer.explain_instance(row, predict_fn, num_features=len(features_used), num_samples=500)
-            for feat_name_exp, weight in exp.as_list():
-                for j, f in enumerate(features_used):
-                    if f in feat_name_exp:
-                        lime_values[i, j] += weight
-                        break
+            # as_map()[1] gives (feature_index, weight) pairs directly, with
+            # the sign matching as_list() — no text parsing, so no substring
+            # collisions between feature names like lag_1 / lag_14.
+            for feat_idx, weight in exp.as_map()[1]:
+                lime_values[i, feat_idx] += weight
         
         mean_abs_lime = np.abs(lime_values).mean(axis=0)
         for f, val in zip(features_used, mean_abs_lime):

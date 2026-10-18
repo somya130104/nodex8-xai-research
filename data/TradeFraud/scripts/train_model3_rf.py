@@ -3,8 +3,13 @@ Model 3 — Random Forest + SMOTE
 Features: All 271 enriched numeric features (same as Model 2)
 Oversampling: SMOTE applied ONLY to training data (val/OOT never seen)
 Outputs: Performance scorecard, ROC curve, Hosmer-Lemeshow chart + data
+
+Phase 0 fixes applied (see ARCHITECTURE.md Section 9): duplicate dispute rows
+are dropped before SMOTE or evaluation; the decision threshold is chosen once
+on Validation OOS and reused unchanged everywhere else; AUC-ROC is reported
+with a bootstrap 95% confidence interval.
 """
-import os, json, pickle, warnings
+import os, sys, json, pickle, warnings
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -13,10 +18,13 @@ import matplotlib.pyplot as plt
 from scipy.stats import chi2
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (roc_auc_score, average_precision_score,
-                             roc_curve, f1_score, precision_score,
-                             recall_score, confusion_matrix)
+from sklearn.metrics import roc_auc_score, average_precision_score, roc_curve
 from imblearn.over_sampling import SMOTE
+
+sys.path.append("/Users/somyabhadada/nodex8")
+from src.eval_utils import (
+    dedupe_rows, select_f1_threshold, metrics_at_threshold, bootstrap_auc_ci,
+)
 
 warnings.filterwarnings("ignore")
 
@@ -43,6 +51,7 @@ def load_dataset(fname, feat_cols=None):
         feat_cols = [c for c in df.columns if c not in EXCLUDE_COLS and c != "target"]
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = dedupe_rows(df, feat_cols)
     X = df[feat_cols].fillna(0)
     y = df["target"]
     return X, y, feat_cols
@@ -59,31 +68,22 @@ def top_decile_recall(y_true, y_prob):
     idx = np.argsort(y_prob)[::-1][:n]
     return y_true.iloc[idx].sum() / max(1, y_true.sum())
 
-def evaluate(model, X, y, label, feat_cols):
+def evaluate(model, X, y, label, threshold):
+    """threshold must be chosen once on Validation OOS and reused unchanged elsewhere."""
     proba = model.predict_proba(X)[:, 1]
-    auc   = roc_auc_score(y, proba)
+    auc, auc_lo, auc_hi = bootstrap_auc_ci(y, proba)
     aupr  = average_precision_score(y, proba)
     ks    = ks_statistic(y, proba)
     tdr   = top_decile_recall(y, proba)
     gini  = 2 * auc - 1
-    thresholds = np.linspace(0.01, 0.99, 200)
-    best_f1, best_thr = 0, 0.5
-    for t in thresholds:
-        pred = (proba >= t).astype(int)
-        if pred.sum() == 0: continue
-        f = f1_score(y, pred, zero_division=0)
-        if f > best_f1: best_f1, best_thr = f, t
-    pred_opt = (proba >= best_thr).astype(int)
-    prec = precision_score(y, pred_opt, zero_division=0)
-    rec  = recall_score(y, pred_opt, zero_division=0)
-    tn, fp, fn, tp = confusion_matrix(y, pred_opt).ravel()
+    thr_metrics = metrics_at_threshold(y, proba, threshold)
     return {
         "Dataset": label, "Rows": len(y), "Disputes": int(y.sum()),
-        "AUC_ROC": round(auc,4), "AUC_PR": round(aupr,4),
+        "AUC_ROC": round(auc,4), "AUC_ROC_CI_Low": auc_lo, "AUC_ROC_CI_High": auc_hi,
+        "AUC_PR": round(aupr,4),
         "Gini": round(gini,4), "KS": round(ks,4),
-        "Top_Decile_Recall": round(tdr,4), "Best_Threshold": round(best_thr,4),
-        "Precision": round(prec,4), "Recall": round(rec,4), "F1": round(best_f1,4),
-        "TP": int(tp), "FP": int(fp), "TN": int(tn), "FN": int(fn)
+        "Top_Decile_Recall": round(tdr,4),
+        **thr_metrics,
     }, proba
 
 def hosmer_lemeshow(y_true, y_prob, bins=10):
@@ -157,11 +157,19 @@ with open(os.path.join(OUTPUT_DIR, "model_config.json"), "w") as f:
 print(f"  Model saved → {model_path}")
 
 # ── 4. Evaluate & collect probabilities ──────────────────────────────
+# Choose ONE decision threshold on Validation OOS, then reuse it unchanged
+# on every other split — see note in the module docstring.
+print("\nStep 3b: Selecting decision threshold on Validation OOS...")
+X_val, y_val, _ = load_dataset("val_oos.csv", feat_cols)
+val_proba = model.predict_proba(X_val)[:, 1]
+FIXED_THRESHOLD = select_f1_threshold(y_val, val_proba)
+print(f"  Threshold fixed at {FIXED_THRESHOLD:.4f} (F1-maximising on Validation OOS only)")
+
 print("\nStep 4: Evaluating on all datasets...")
 results, probas_dict, y_dict = [], {}, {}
 for fname, label in EVAL_SETS:
     X, y, _ = load_dataset(fname, feat_cols)
-    res, proba = evaluate(model, X, y, label, feat_cols)
+    res, proba = evaluate(model, X, y, label, FIXED_THRESHOLD)
     results.append(res)
     probas_dict[label] = proba
     y_dict[label]      = y

@@ -25,6 +25,7 @@ MODEL_DIR  = "/Users/somyabhadada/nodex8/data/DemandForecast/Model_Outputs/"
 OUTPUT_DIR = "/Users/somyabhadada/nodex8/data/DemandForecast/XAI_Outputs/"
 
 EXCLUDE_COLS = ["RowNum", "Date", "UPC", "COMP_STR_NO", "QUANTITY", "BRAND", "RET_LIR_ID"]
+CATEGORICAL_COLS = ["PROMOTION_FLG", "C_PROMOTION_FLG"]
 N_SAMPLE = 200
 SEED = 42
 
@@ -33,6 +34,9 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     val_df = pd.read_csv(os.path.join(DATA_DIR, "oos.csv"))
+    for col in CATEGORICAL_COLS:
+        if col in val_df.columns:
+            val_df[col] = val_df[col].map({'Y': 1, 'N': 0, '1': 1, '0': 0, 1: 1, 0: 0}).fillna(0)
     feat_cols = [c for c in val_df.columns if c not in EXCLUDE_COLS]
 
     rng = np.random.RandomState(SEED)

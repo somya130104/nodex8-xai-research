@@ -9,8 +9,15 @@ Advantages:  Sidesteps oversampling entirely; learns what "normal" looks like
 
 Outputs:     Performance scorecard, ROC curve, HL calibration chart,
              per-feature reconstruction error importance, model artefacts.
+
+Phase 0 fixes applied (see ARCHITECTURE.md Section 9): duplicate dispute rows
+are dropped before training or evaluation; the decision threshold is chosen
+once on Validation OOS and reused unchanged everywhere else; AUC-ROC is
+reported with a bootstrap 95% confidence interval. Note: this model's own
+early-stopping split was already drawn strictly from normal training rows
+(never from Validation OOS), so no leakage fix was needed there.
 """
-import os, json, pickle, warnings, time
+import os, sys, json, pickle, warnings, time
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -18,11 +25,15 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.stats import chi2
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import (roc_auc_score, average_precision_score, roc_curve,
-                             f1_score, precision_score, recall_score, confusion_matrix)
+from sklearn.metrics import average_precision_score, roc_curve, roc_auc_score
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+
+sys.path.append("/Users/somyabhadada/nodex8")
+from src.eval_utils import (
+    dedupe_rows, select_f1_threshold, metrics_at_threshold, bootstrap_auc_ci,
+)
 
 warnings.filterwarnings("ignore")
 torch.manual_seed(42)
@@ -79,6 +90,7 @@ def load_features(fname, feat_cols=None):
         feat_cols = [c for c in df.columns if c not in EXCLUDE_COLS and c != "target"]
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = dedupe_rows(df, feat_cols)
     X = df[feat_cols].fillna(0).values.astype(np.float32)
     y = df["target"].values
     return X, y, feat_cols
@@ -106,28 +118,17 @@ def top_decile_recall(y, scores):
     idx = np.argsort(scores)[::-1][:n]
     return y[idx].sum() / max(1, y.sum())
 
-def evaluate(y, proba):
-    auc  = roc_auc_score(y, proba)
+def evaluate(y, proba, threshold):
+    """threshold must be chosen once on Validation OOS and reused unchanged elsewhere."""
+    auc, auc_lo, auc_hi = bootstrap_auc_ci(y, proba)
     aupr = average_precision_score(y, proba)
     ks   = ks_stat(y, proba)
     tdr  = top_decile_recall(y, proba)
     gini = 2 * auc - 1
-    thrs = np.linspace(0.001, 0.999, 300)
-    best_f1, best_thr = 0, 0.5
-    for t in thrs:
-        pred = (proba >= t).astype(int)
-        if pred.sum() == 0: continue
-        f = f1_score(y, pred, zero_division=0)
-        if f > best_f1: best_f1, best_thr = f, t
-    pred_opt = (proba >= best_thr).astype(int)
-    prec = precision_score(y, pred_opt, zero_division=0)
-    rec  = recall_score(y, pred_opt, zero_division=0)
-    tn, fp, fn, tp = confusion_matrix(y, pred_opt).ravel()
-    return {"AUC_ROC": round(auc,4), "AUC_PR": round(aupr,4),
-            "Gini": round(gini,4), "KS": round(ks,4),
-            "Top_Decile_Recall": round(tdr,4), "Best_Threshold": round(best_thr,4),
-            "Precision": round(prec,4), "Recall": round(rec,4), "F1": round(best_f1,4),
-            "TP": int(tp), "FP": int(fp), "TN": int(tn), "FN": int(fn)}, proba
+    thr_metrics = metrics_at_threshold(y, proba, threshold)
+    return {"AUC_ROC": round(auc,4), "AUC_ROC_CI_Low": auc_lo, "AUC_ROC_CI_High": auc_hi,
+            "AUC_PR": round(aupr,4), "Gini": round(gini,4), "KS": round(ks,4),
+            "Top_Decile_Recall": round(tdr,4), **thr_metrics}, proba
 
 def hosmer_lemeshow(y, proba, bins=10):
     df = pd.DataFrame({"y": y, "p": proba})
@@ -257,6 +258,16 @@ print(f"  Reference range for scaling: [{ref_min:.4f}, {ref_max:.4f}]")
 # STEP 5 — Evaluate on all datasets
 # ─────────────────────────────────────────────────────────────────────
 print("\nStep 5: Evaluating on all datasets...")
+
+# Choose ONE decision threshold on Validation OOS, then reuse it unchanged on
+# every other split — see module docstring.
+X_val_raw, y_val, _ = load_features("val_oos.csv", feat_cols)
+X_val_sc = scaler.transform(X_val_raw).astype(np.float32)
+val_errors = get_recon_error(model, torch.tensor(X_val_sc))
+val_proba  = normalize_to_prob(val_errors, ref_min, ref_max)
+FIXED_THRESHOLD = select_f1_threshold(y_val, val_proba)
+print(f"  Threshold fixed at {FIXED_THRESHOLD:.4f} (F1-maximising on Validation OOS only)")
+
 results, scores_dict, y_dict = [], {}, {}
 
 for fname, label in EVAL_SETS:
@@ -265,11 +276,12 @@ for fname, label in EVAL_SETS:
     errors = get_recon_error(model, torch.tensor(X_sc))
     proba  = normalize_to_prob(errors, ref_min, ref_max)
 
-    res, _ = evaluate(y, proba)
+    res, _ = evaluate(y, proba, FIXED_THRESHOLD)
     res.update({"Dataset": label, "Rows": len(y), "Disputes": int(y.sum())})
     # reorder columns
-    res = {k: res[k] for k in ["Dataset","Rows","Disputes","AUC_ROC","AUC_PR",
-                                 "Gini","KS","Top_Decile_Recall","Best_Threshold",
+    res = {k: res[k] for k in ["Dataset","Rows","Disputes","AUC_ROC",
+                                 "AUC_ROC_CI_Low","AUC_ROC_CI_High","AUC_PR",
+                                 "Gini","KS","Top_Decile_Recall","Threshold_Used",
                                  "Precision","Recall","F1","TP","FP","TN","FN"]}
     results.append(res)
     scores_dict[label] = proba

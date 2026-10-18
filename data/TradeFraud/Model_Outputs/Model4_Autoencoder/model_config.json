@@ -9,9 +9,9 @@
   "batch_size": 512,
   "learning_rate": 0.001,
   "early_stopping_patience": 10,
-  "best_val_mse": 0.243258,
+  "best_val_mse": 0.24222,
   "n_features": 271,
   "training_note": "Trained ONLY on non-dispute (N) rows from train.csv",
-  "normal_train_rows": 91430,
-  "dispute_train_rows": 2050
+  "normal_train_rows": 91421,
+  "dispute_train_rows": 205
 }

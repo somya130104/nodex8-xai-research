@@ -45,7 +45,9 @@ nodex8/
 ├── ARCHITECTURE.md       ← the decisions we made and why (read second)
 ├── FLOW.md               ← this file (read first)
 │
-├── src/                  ← reserved for the shared library (claris_deep_xai), currently empty
+├── requirements.txt      ← pinned package versions (pip install -r requirements.txt)
+├── src/                  ← shared code. Currently just eval_utils.py (Phase 0 fixes);
+│                           reserved for the real explainer library (claris_deep_xai) later
 │
 └── data/
     ├── TradeFraud/            ← PRIORITY 1. Fraud detection. Classification.
@@ -207,10 +209,13 @@ This shape is deliberate: it makes it easy to stack results from many models and
 cd /Users/somyabhadada/nodex8
 python3 -m venv .venv
 source .venv/bin/activate
-pip install numpy pandas scipy scikit-learn torch xgboost lightgbm shap lime pytorch-tabnet matplotlib imbalanced-learn
+pip install -r requirements.txt
 ```
 
-> There is no pinned `requirements.txt` yet — creating one is the first task of Phase 0.
+> **On macOS:** `xgboost` and `lightgbm` need the OpenMP runtime, which their wheels do not bundle.
+> Run `brew install libomp` once before `pip install`, or the import will fail with a `libomp.dylib
+> not loaded` error. See the comment at the top of `requirements.txt` for a scipy-wheel issue we also
+> hit (and the exact pinned version that avoids it) on very new macOS builds.
 
 ### Running a script
 
@@ -240,6 +245,12 @@ preprocessing scripts unless you intend to change the feature engineering.
 ---
 
 ## 7. What each file is for
+
+### Shared code — `src/`
+
+| File | What it does |
+|---|---|
+| `eval_utils.py` | The Phase 0 fixes, factored out once instead of copy-pasted into six scripts: `dedupe_rows()` drops the 10×-duplicated dispute rows; `select_f1_threshold()` / `metrics_at_threshold()` implement "pick a threshold on validation only, reuse it everywhere"; `bootstrap_auc_ci()` / `bootstrap_auc_pr_ci()` add confidence intervals. Every TradeFraud script imports from here via `sys.path.append("/Users/somyabhadada/nodex8"); from src.eval_utils import ...`. |
 
 ### TradeFraud — `data/TradeFraud/scripts/`
 
@@ -303,21 +314,28 @@ it. Worth studying as the template we are copying:
 1. **Models are numbered 2–7. There is no Model 1.** Left over from an earlier numbering scheme.
 2. **`tabnet_model.zip.zip`** — a genuine double extension caused by a save bug. The loading code
    has a fallback for it. Harmless, on the tidy-up list.
-3. **Disputes look 10× more common than they are.** In the supplied data each fraud row is
-   duplicated ten times. Training reports 2,050 disputes; there are 205 real ones. See
-   ARCHITECTURE.md §3.
-4. **Validation AUC around 0.6–0.7 is not a broken model.** With a 0.22% fraud rate on out-of-time
-   data, that is a normal and useful result. Accuracy is a meaningless metric here — a model that
-   says "never fraud" is 99.78% accurate.
-5. **The DemandForecast file named `train_lstm.py` is not really a sequence model.** It feeds
+3. **Disputes look 10× more common than they are — and every script now fixes this itself.** In the
+   supplied data each fraud row is duplicated ten times. Every loader calls `dedupe_rows()` (from
+   `src/eval_utils.py`) before doing anything else, so you will see a line like
+   `[dedupe_rows] removed 1854 duplicate rows (93480 -> 91626)` printed every time you run a
+   TradeFraud script. That is expected, not an error. See ARCHITECTURE.md §3 and §7.
+4. **Validation AUC around 0.6–0.7, with a wide confidence interval, is not a broken model.** With a
+   0.22% fraud rate on out-of-time data and only 15–18 real disputes per month, that is a normal and
+   useful result — and the CI (now reported alongside every AUC) is there specifically so you don't
+   over-read small differences between models as real. Accuracy is a meaningless metric here — a
+   model that says "never fraud" is 99.78% accurate.
+5. **A model's threshold is fixed once, on Validation OOS, and reused everywhere.** You will see one
+   `Threshold_Used` value repeated down the whole `performance_scorecard.csv`, including on OOT
+   months. That is intentional — see ARCHITECTURE.md §7, item 5.
+6. **The DemandForecast file named `train_lstm.py` is not really a sequence model.** It feeds
    sequences of length 1, so it behaves as a plain feed-forward network. Replacing it with a true
    28-day sequence model is a Phase 2 task.
-6. **`Dispute` is the strings `"D"` and `"N"`, not 1 and 0.** Every script converts it with
+7. **`Dispute` is the strings `"D"` and `"N"`, not 1 and 0.** Every script converts it with
    `(df["Dispute"] == "D").astype(int)`. If you write new code and forget this, every row silently
    becomes "not fraud" and your model will look perfect.
-7. **Result CSVs are not in git.** `.gitignore` excludes `*.csv`, so `shap_global.csv` and the other
+8. **Result CSVs are not in git.** `.gitignore` excludes `*.csv`, so `shap_global.csv` and the other
    outputs live only on the local machine. You must re-run the scripts to regenerate them.
-8. **You will not find CLI, LRD or Manifold-LIME anywhere.** They are not built yet — that is the
+9. **You will not find CLI, LRD or Manifold-LIME anywhere.** They are not built yet — that is the
    research still to come. An earlier session produced something *named* CLI that measured a
    different thing; it was removed to avoid confusion. See ARCHITECTURE.md §6.
 

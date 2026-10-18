@@ -1,0 +1,33 @@
+# Pinned to versions verified working together on this project (Python 3.12, macOS arm64).
+#
+# NOTE for macOS arm64 on very new OS builds (macOS 26 "Tahoe"+ / Darwin 27+):
+# xgboost and lightgbm require the OpenMP runtime, which is NOT bundled in their
+# wheels on macOS. Install it once via Homebrew before `pip install`:
+#   brew install libomp
+#
+# NOTE: scipy>=1.14 wheels can fail to import (scipy.sparse.linalg._propack) on
+# very new macOS builds with an error like:
+#   "section '__DATA/__thread_bss' has a zero-fill section type, but offset
+#    field is not zero"
+# This is a wheel/OS incompatibility, not a project bug. scipy==1.13.1 (pinned
+# below) is confirmed working. If you hit this on a different machine, try
+# upgrading scipy instead (the newer-OS incompatibility may be fixed upstream).
+
+numpy==2.0.2
+scipy==1.13.1
+pandas==2.3.3
+scikit-learn==1.6.1
+
+xgboost==3.4.1
+lightgbm==4.7.0
+imbalanced-learn
+pytorch-tabnet
+
+shap==0.54.1
+lime
+
+torch==2.10.0
+statsmodels
+
+matplotlib
+openpyxl

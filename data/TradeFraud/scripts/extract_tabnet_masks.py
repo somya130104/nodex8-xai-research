@@ -16,9 +16,13 @@ XAI_Outputs/tabnet_masks.csv  with columns [Model, Signal, Feature, Attribution]
   Signal = "Instance_Mask_Attribution"   -> mean over the sampled instances
 """
 import os
+import sys
 import numpy as np
 import pandas as pd
 from pytorch_tabnet.tab_model import TabNetClassifier
+
+sys.path.append("/Users/somyabhadada/nodex8")
+from src.eval_utils import dedupe_rows
 
 DATA_DIR   = "/Users/somyabhadada/nodex8/data/TradeFraud/Modeling_Data_Enriched/"
 MODEL_DIR  = "/Users/somyabhadada/nodex8/data/TradeFraud/Model_Outputs/"
@@ -34,6 +38,7 @@ def main():
 
     val_df = pd.read_csv(os.path.join(DATA_DIR, "val_oos.csv"))
     feat_cols = [c for c in val_df.columns if c not in EXCLUDE_COLS]
+    val_df = dedupe_rows(val_df, feat_cols)  # Phase 0 fix: drop 10x-duplicated dispute rows
 
     rng = np.random.RandomState(SEED)
     idx = rng.choice(len(val_df), min(N_SAMPLE, len(val_df)), replace=False)

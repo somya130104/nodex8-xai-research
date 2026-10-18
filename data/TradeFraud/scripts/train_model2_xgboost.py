@@ -2,8 +2,18 @@
 Model 2 — XGBoost + scale_pos_weight
 Features: All 277 (186 original + 91 engineered)
 Evaluated on: Train, OOS, Internal OOT, OOT Oct/Nov/Dec 2025
+
+Phase 0 fixes applied (see ARCHITECTURE.md Section 9):
+  - Duplicate dispute rows (10x repeated in the supplied data) are dropped
+    before training or evaluating on any split.
+  - The decision threshold is chosen ONCE on Validation OOS, then reused
+    unchanged on every other split (including OOT). It is no longer
+    re-optimised per dataset, which would otherwise flatter every set.
+  - Each AUC-ROC is reported with a bootstrap 95% confidence interval, since
+    the out-of-time months contain as few as 15-18 real disputes.
 """
 import os
+import sys
 import json
 import warnings
 import numpy as np
@@ -12,9 +22,12 @@ import pickle
 warnings.filterwarnings("ignore")
 
 from xgboost import XGBClassifier
-from sklearn.metrics import (roc_auc_score, average_precision_score,
-                             f1_score, precision_score, recall_score,
-                             confusion_matrix)
+from sklearn.metrics import average_precision_score
+
+sys.path.append("/Users/somyabhadada/nodex8")
+from src.eval_utils import (
+    dedupe_rows, select_f1_threshold, metrics_at_threshold, bootstrap_auc_ci,
+)
 
 # ── Paths ────────────────────────────────────────────────────────────
 DATA_DIR   = "/Users/somyabhadada/nodex8/data/TradeFraud/Modeling_Data_Enriched/"
@@ -34,6 +47,7 @@ def load_dataset(fname):
     # Cast everything to numeric where possible
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = dedupe_rows(df, feat_cols)
     X = df[feat_cols].fillna(0)
     y = df["target"]
     return X, y, feat_cols
@@ -49,44 +63,31 @@ def top_decile_recall(y_true, y_prob):
     idx = np.argsort(y_prob)[::-1][:n_decile]
     return y_true.iloc[idx].sum() / max(1, y_true.sum())
 
-def evaluate(model, X, y, dataset_name, feat_cols):
+def evaluate(model, X, y, dataset_name, threshold):
+    """
+    threshold must be chosen once on Validation OOS (see select_f1_threshold
+    in the main script below) and passed in unchanged for every other split.
+    """
     proba = model.predict_proba(X)[:, 1]
-    auc_roc = roc_auc_score(y, proba)
+    auc_roc, auc_lo, auc_hi = bootstrap_auc_ci(y, proba)
     auc_pr  = average_precision_score(y, proba)
     gini    = 2 * auc_roc - 1
     ks      = ks_statistic(y, proba)
     tdr     = top_decile_recall(y, proba)
-
-    # Optimal F1 threshold
-    thresholds = np.linspace(0.01, 0.99, 200)
-    best_f1, best_thr = 0, 0.5
-    for t in thresholds:
-        pred = (proba >= t).astype(int)
-        if pred.sum() == 0:
-            continue
-        f1 = f1_score(y, pred, zero_division=0)
-        if f1 > best_f1:
-            best_f1, best_thr = f1, t
-
-    pred_opt = (proba >= best_thr).astype(int)
-    prec  = precision_score(y, pred_opt, zero_division=0)
-    rec   = recall_score(y, pred_opt, zero_division=0)
-    tn, fp, fn, tp = confusion_matrix(y, pred_opt).ravel()
+    thr_metrics = metrics_at_threshold(y, proba, threshold)
 
     return {
-        "Dataset":          dataset_name,
-        "Rows":             len(y),
-        "Disputes":         int(y.sum()),
-        "AUC_ROC":          round(auc_roc, 4),
-        "AUC_PR":           round(auc_pr, 4),
-        "Gini":             round(gini, 4),
-        "KS":               round(ks, 4),
-        "Top_Decile_Recall":round(tdr, 4),
-        "Best_Threshold":   round(best_thr, 4),
-        "Precision":        round(prec, 4),
-        "Recall":           round(rec, 4),
-        "F1":               round(best_f1, 4),
-        "TP": int(tp), "FP": int(fp), "TN": int(tn), "FN": int(fn)
+        "Dataset":           dataset_name,
+        "Rows":              len(y),
+        "Disputes":          int(y.sum()),
+        "AUC_ROC":           round(auc_roc, 4),
+        "AUC_ROC_CI_Low":    auc_lo,
+        "AUC_ROC_CI_High":   auc_hi,
+        "AUC_PR":            round(auc_pr, 4),
+        "Gini":              round(gini, 4),
+        "KS":                round(ks, 4),
+        "Top_Decile_Recall": round(tdr, 4),
+        **thr_metrics,
     }
 
 # ── 1. Load training data ────────────────────────────────────────────
@@ -143,6 +144,17 @@ with open(os.path.join(OUTPUT_DIR, "model_config.json"), "w") as f:
 print(f"Model saved → {model_path}")
 
 # ── 4. Evaluate across all datasets ──────────────────────────────────
+# Choose ONE decision threshold on Validation OOS, then reuse it, unchanged,
+# on every other split (train and every OOT month). Re-optimising a
+# threshold per dataset — as the original version of this script did — looks
+# at each set's own labels before deciding, which makes precision/recall/F1
+# look better than a single deployed threshold ever would.
+print("\nSelecting decision threshold on Validation OOS...")
+X_val, y_val, _ = load_dataset("val_oos.csv")
+val_proba = model.predict_proba(X_val)[:, 1]
+FIXED_THRESHOLD = select_f1_threshold(y_val, val_proba)
+print(f"  Threshold fixed at {FIXED_THRESHOLD:.4f} (F1-maximising on Validation OOS only)")
+
 print("\nEvaluating across all datasets...")
 eval_sets = [
     ("train.csv",        "Train (oversampled)"),
@@ -156,9 +168,10 @@ eval_sets = [
 results = []
 for fname, label in eval_sets:
     X, y, _ = load_dataset(fname)
-    res = evaluate(model, X, y, label, feat_cols)
+    res = evaluate(model, X, y, label, FIXED_THRESHOLD)
     results.append(res)
-    print(f"  {label:35s} | AUC={res['AUC_ROC']:.4f} | KS={res['KS']:.4f} | "
+    ci_str = f"[{res['AUC_ROC_CI_Low']},{res['AUC_ROC_CI_High']}]"
+    print(f"  {label:35s} | AUC={res['AUC_ROC']:.4f} {ci_str:18s} | KS={res['KS']:.4f} | "
           f"Gini={res['Gini']:.4f} | TopDecile={res['Top_Decile_Recall']:.4f} | F1={res['F1']:.4f}")
 
 df_results = pd.DataFrame(results)

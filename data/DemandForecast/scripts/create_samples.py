@@ -1,6 +1,15 @@
 """
 Data splitting script for DemandForecast.
 Creates DEV, OOS, and OOT splits based on the detailed plan.
+
+Phase 0 fix applied (see ARCHITECTURE.md Section 9): the OOT cutoff used to
+be "max_date - 60 days", which does not land on a calendar-month boundary.
+With this data's max date of 27-Feb-2013, that cut the resulting "Dec 2012"
+OOT bucket down to its last 2 days (30-31 Dec) instead of the full month,
+making any metric on it essentially meaningless. The cutoff is now the start
+of the last three full calendar months present in the data, so OOT becomes
+Dec 2012 (full month), Jan 2013 (full month), and Feb 2013 (partial, through
+the 27th — the dataset simply ends there, which is unavoidable).
 """
 import os
 import pandas as pd
@@ -8,26 +17,32 @@ import pandas as pd
 DATA_DIR = "/Users/somyabhadada/nodex8/data/DemandForecast"
 OUTPUT_DIR = os.path.join(DATA_DIR, "samples")
 
+# Number of full calendar months (counted back from the month before the
+# data's max date) to hold out as OOT buckets.
+N_OOT_MONTHS = 3
+
 def create_splits():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    
+
     print("Loading features.csv...")
     df = pd.read_csv(os.path.join(DATA_DIR, "features.csv"))
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values("Date").reset_index(drop=True)
-    
-    # 1. Time-based OOT Split
-    # The data is from Oct 2012 to roughly mid 2014.
-    # Let's use the last 60 days as OOT.
+
+    # 1. Time-based OOT split, on calendar-month boundaries.
+    # OOT = the last N_OOT_MONTHS full calendar months that start before the
+    # data's max date (so the last, necessarily partial, month the dataset
+    # ends in is still included as one OOT bucket — it is simply short).
     max_date = df["Date"].max()
-    cutoff_date = max_date - pd.Timedelta(days=60)
-    
-    print(f"Max date: {max_date.date()}, Cutoff date (max - 60 days): {cutoff_date.date()}")
-    
+    last_full_month_start = max_date.to_period("M").to_timestamp()
+    cutoff_date = (last_full_month_start - pd.DateOffset(months=N_OOT_MONTHS - 1)) - pd.Timedelta(days=1)
+
+    print(f"Max date: {max_date.date()}, OOT cutoff (calendar-month boundary): {cutoff_date.date()}")
+
     in_time_mask = df["Date"] <= cutoff_date
     df_in_time = df[in_time_mask].copy()
     df_oot = df[~in_time_mask].copy()
-    
+
     print(f"In-time rows: {len(df_in_time)}, OOT rows: {len(df_oot)}")
     
     # 2. Entity-based DEV/OOS Split

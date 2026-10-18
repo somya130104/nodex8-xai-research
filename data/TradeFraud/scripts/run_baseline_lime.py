@@ -1,7 +1,18 @@
 """
 Generate Standard LIME explanations for TradeFraud baseline models.
+
+Phase 0 note (see ARCHITECTURE.md Section 9): no TradeFraud feature name is
+a substring of another, so the original text-matching approach below did not
+actually mis-map any weights on this dataset (unlike DemandForecast, where it
+did). It is still replaced with exp.as_map(), which uses LIME's own
+(feature_index, weight) pairs directly, so the result no longer depends on
+that coincidence holding as features are added or renamed in the future.
+
+Also applies the Phase 0 dedupe fix: duplicate dispute rows are dropped
+before sampling or explaining.
 """
 import os
+import sys
 import json
 import pickle
 import numpy as np
@@ -9,6 +20,9 @@ import pandas as pd
 import lime
 import lime.lime_tabular
 import warnings
+
+sys.path.append("/Users/somyabhadada/nodex8")
+from src.eval_utils import dedupe_rows
 
 warnings.filterwarnings("ignore")
 
@@ -31,6 +45,7 @@ def load_dataset(fname):
     feat_cols = [c for c in df.columns if c not in EXCLUDE_COLS and c != "target"]
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = dedupe_rows(df, feat_cols)
     X = df[feat_cols].fillna(0)
     y = df["target"]
     return df, X, y, feat_cols
@@ -97,14 +112,11 @@ def run_lime():
         
         for i, row in enumerate(X_sample_proc):
             exp = explainer.explain_instance(row, predict_fn, num_features=len(feat_cols), num_samples=1000)
-            # Map LIME explanations back to column indices
-            for feat_name_exp, weight in exp.as_list():
-                # LIME returns names like 'cash_daysTraded <= 0.00'
-                # Find matching original feature
-                for j, f in enumerate(feat_cols):
-                    if f in feat_name_exp:
-                        lime_values[i, j] += weight
-                        break
+            # as_map()[1] gives (feature_index, weight) pairs for the
+            # "Dispute" class directly — no text parsing, so no risk of a
+            # substring collision between feature names.
+            for feat_idx, weight in exp.as_map()[1]:
+                lime_values[i, feat_idx] += weight
         
         # Global LIME
         mean_abs_lime = np.abs(lime_values).mean(axis=0)

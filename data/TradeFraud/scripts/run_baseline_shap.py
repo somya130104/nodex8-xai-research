@@ -1,7 +1,13 @@
 """
 Generate Standard SHAP and LIME explanations for TradeFraud baseline models.
+
+Phase 0 fix applied (see ARCHITECTURE.md Section 9): duplicate dispute rows
+(10x repeated in the supplied data) are dropped before sampling background
+data or explaining instances, so explanations are not disproportionately
+drawn from the same handful of repeated clients.
 """
 import os
+import sys
 import json
 import pickle
 import numpy as np
@@ -10,6 +16,9 @@ import shap
 import lime
 import lime.lime_tabular
 import warnings
+
+sys.path.append("/Users/somyabhadada/nodex8")
+from src.eval_utils import dedupe_rows
 
 warnings.filterwarnings("ignore")
 
@@ -32,6 +41,7 @@ def load_dataset(fname):
     feat_cols = [c for c in df.columns if c not in EXCLUDE_COLS and c != "target"]
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = dedupe_rows(df, feat_cols)
     X = df[feat_cols].fillna(0)
     y = df["target"]
     return df, X, y, feat_cols

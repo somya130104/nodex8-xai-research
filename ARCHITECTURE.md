@@ -88,28 +88,35 @@ production.
 > duplicated 10 times**. The "2,050 disputes" in training are 205 distinct clients repeated ten times
 > each. This matters a great deal: with only 15–18 *real* disputes in each out-of-time month, the
 > confidence interval around any AUC figure is roughly ±0.13. Most apparent differences between
-> models on those months are statistical noise, not real differences. It also explains why the tree
-> models report a training AUC of 1.000 — they are memorising repeated rows.
-> **We have asked Angshuman whether this duplication is intentional.** Until we hear back, every
-> OOT number in this repository should be read as indicative only.
+> models on those months are statistical noise, not real differences.
+> **We have asked Angshuman whether this duplication is intentional.** Until we hear back, our
+> default (applied throughout this repository as of Phase 0) is to **drop the duplicates** before
+> training or evaluating anything: every model now trains and is scored on the 205/51/32/15/18/18
+> unique clients per split, with class weighting used instead to handle the imbalance. This is why a
+> training AUC of 1.000 (seen in the original, undeduplicated runs — the tree models were simply
+> memorising repeated rows) is no longer observed.
 
 ### DemandForecast
 
 | Split | Rows | Period |
 |---|---:|---|
-| `dev.csv` | 28,589 | up to Oct 2012 |
-| `oos.csv` | 15,418 | same period, held-out brands |
-| `oot_01_201212.csv` | 182 | Dec 2012 |
-| `oot_02_201301.csv` | 2,691 | Jan 2013 |
-| `oot_03_201302.csv` | 2,513 | Feb 2013 |
+| `dev.csv` | 26,803 | up to Nov 2012 |
+| `oos.csv` | 14,461 | same period, held-out brands |
+| `oot_01_201212.csv` | 2,925 | Dec 2012 (full month) |
+| `oot_02_201301.csv` | 2,691 | Jan 2013 (full month) |
+| `oot_03_201302.csv` | 2,513 | Feb 2013 (through the 27th — the dataset ends there) |
 
 - OOS is split by **entity (brand × store)**, so the model is tested on products it has not seen.
-- OOT is the final calendar months.
+- OOT is the last three full calendar months in the data.
 
-> **Two caveats.** (a) `oot_01` covers only **two days** (182 rows), because the cut-off was set as
-> "last 60 days" rather than on calendar-month boundaries — any metric on it is unreliable.
-> (b) There is only **one store** and **ten brands** in this data, so a 70/30 split by brand means
-> OOS rests on just 3 brands. Both are on the fix list.
+> **Fixed in Phase 0.** The OOT cutoff used to be "max date − 60 days", which landed mid-month and
+> left `oot_01` covering only the last 2 days of December. It is now the start of the last three
+> full calendar months, so `oot_01` is a genuine full month (2,925 rows). All DemandForecast models
+> were retrained on the corrected splits; the numbers in Section 4 reflect this.
+>
+> **Still open:** there is only **one store** and **ten brands** in this data, so a 70/30 split by
+> brand means OOS rests on just 3 brands. Splitting OOS by product (131 UPCs) instead would give a
+> far more stable estimate — this remains on the fix list for Phase 1.
 
 ### Leakage check we ran and passed
 
@@ -156,37 +163,48 @@ reviews only the riskiest 10% of accounts, what share of all disputes do they ca
 
 For DemandForecast: MAE, RMSE, MAPE and R².
 
-### Current baseline results (preliminary)
+### Current baseline results (post Phase 0 fixes)
 
-TradeFraud, AUC-ROC:
+All numbers below are read directly from `performance_scorecard.csv` in each model's output folder,
+after: deduplication, a decision threshold chosen once on validation and reused unchanged everywhere
+(not re-optimised per dataset), early stopping moved onto an internal split of training data only
+(never the evaluation set), and — for TradeFraud — a bootstrap 95% confidence interval on every AUC.
+
+TradeFraud, AUC-ROC [95% CI]:
 
 | Model | Validation (OOS) | OOT Dec 2025 |
 |---|---:|---:|
-| Logistic Regression | 0.716 | 0.586 |
-| Random Forest | 0.686 | 0.607 |
-| XGBoost | 0.666 | 0.551 |
-| LightGBM | 0.665 | 0.565 |
-| Autoencoder | 0.529 | 0.547 |
-| TabNet* | 0.751 | 0.669 |
+| Logistic Regression | 0.716 [0.63, 0.80] | 0.586 [0.43, 0.73] |
+| XGBoost | 0.715 [0.62, 0.81] | 0.620 [0.46, 0.77] |
+| Random Forest | 0.711 [0.62, 0.80] | 0.604 [0.45, 0.74] |
+| TabNet | 0.677 [0.59, 0.77] | 0.672 [0.51, 0.82] |
+| LightGBM | 0.575 [0.47, 0.68] | 0.548 [0.39, 0.71] |
+| Autoencoder | 0.537 [0.46, 0.61] | 0.556 [0.42, 0.69] |
 
-DemandForecast, R²:
+Every confidence interval above is roughly 0.15–0.25 AUC points wide — exactly the effect of the
+15–18 real out-of-time disputes described above. **Read the point estimates with that in mind:**
+LightGBM's drop after deduplication (previously 0.665/0.565, now 0.575/0.548) is a real consequence
+of early stopping on an internal split with only ~20 positive examples, not a bug — it is itself a
+demonstration of the small-sample problem this fix exists to surface. No model's OOT Dec 2025
+confidence interval is clearly separated from any other's; none of these differences should be
+presented as "Model X beats Model Y" without saying so.
 
-| Model | DEV | OOS |
-|---|---:|---:|
-| Random Forest | 0.834 | 0.226 |
-| LightGBM | 0.823 | 0.235 |
-| XGBoost | 0.751 | 0.259 |
-| LSTM* | 0.774 | 0.219 |
-| TabNet* | 0.720 | 0.250 |
-| OLS | 0.626 | 0.244 |
+DemandForecast, R² (retrained on the corrected calendar-month OOT splits, Section 3):
 
-\* **Not yet comparable.** TabNet and the LSTM were early-stopped using the validation set they are
-then scored on, which flatters them. They will be retrained with a validation slice taken from
-training data only. Until then, do not use these to argue that deep models beat the baselines.
+| Model | DEV | OOS | OOT Dec 2012 (full month) |
+|---|---:|---:|---:|
+| Random Forest | 0.836 | 0.220 | — |
+| LSTM | 0.773 | 0.264 | 0.507 |
+| LightGBM | 0.785 | 0.227 | — |
+| XGBoost | 0.767 | 0.224 | — |
+| TabNet | 0.694 | 0.093 | 0.551 |
+| OLS | 0.627 | 0.228 | — |
 
-**We are not claiming any model is better than another.** Given the duplicated disputes, the tiny
-real sample sizes, and the early-stopping issue above, that claim is not currently supportable. All
-numbers are read directly from the `performance_scorecard.csv` files.
+**We are not claiming any model is better than another.** OOS R² is low and similar for every model
+(0.09–0.26), which — as before — looks like a structural effect of only 3 brands being held out,
+not a model failure. TabNet's distinctly lower OOS R² (0.093) is worth a closer look in Phase 1
+rather than being read as "TabNet is worse": it may be more sensitive to the small number of
+held-out brands than the tree models are.
 
 ### Why the autoencoder
 
@@ -274,34 +292,57 @@ built-in masks, so this is a legitimate reference point.
 
 Recorded honestly so they are fixed deliberately rather than discovered by a reviewer.
 
-1. **Duplicated disputes (TradeFraud).** 10× duplication of positive rows. Awaiting confirmation
-   from NodeX8; our default will be to train and evaluate on unique rows with class weights.
-2. **LIME feature-mapping bug (DemandForecast).** LIME returns conditions as text
-   (`"lag_1 <= 0.00"`), and the current code matches those by substring. Because `lag_1` is a
-   substring of `lag_14`, and `SALE_PRICE` of `C_SALE_PRICE`, weights are credited to the wrong
-   feature. **Fifteen features have a LIME value of exactly zero for every model**, including every
-   competitor (`C_*`) feature. TradeFraud is unaffected (no feature name is a substring of another).
-3. **The DemandForecast "LSTM" is not temporal.** It is fed sequences of length 1, which makes it a
-   plain feed-forward network. A genuine 28-day sequence model is needed for the proposal's
-   temporal architecture family. (SalesForecasting's LSTM already does this properly and can be
-   adapted.)
-4. **TabNet / LSTM early-stopped on the evaluation set.** Their validation scores are optimistic.
-5. **Decision thresholds are re-tuned on every test set,** including out-of-time sets. This makes
-   precision/recall/F1 look better than they would in production. One threshold, fixed on
-   validation, must be applied everywhere.
-6. **No confidence intervals.** Essential given 15–18 real disputes per OOT month.
-7. **Autoencoder preprocessing.** Heavy-tailed amount columns are not log-transformed, so a few
-   columns dominate the reconstruction error.
-8. **`oot_01_201212` is 2 days long.**
-9. **Hosmer-Lemeshow calibration charts exist but should not be interpreted.** Every model
-   deliberately distorts its probabilities (`scale_pos_weight`, SMOTE, `class_weight='balanced'`), and
-   the autoencoder's "probability" is a min-max-scaled reconstruction error, so a calibration test
-   on it is not meaningful.
-10. **Attribution outputs are not version-controlled.** `.gitignore` excludes `*.csv`, so
+### Fixed in Phase 0
+
+1. ~~**Duplicated disputes (TradeFraud).**~~ **Fixed.** Every TradeFraud training, SHAP, LIME and
+   TabNet-mask script now drops the 10× duplicated rows before touching the data
+   (`src/eval_utils.dedupe_rows`), and trains/evaluates on the 205/51/32/15/18/18 unique clients per
+   split. **Still awaiting confirmation from NodeX8** that this is the right call rather than
+   intentional oversampling — see Section 8.
+2. ~~**LIME feature-mapping bug (DemandForecast).**~~ **Fixed.** The substring-matching approach
+   (`if f in feat_name_exp`) is replaced with `exp.as_map()`, which gives LIME's own
+   (feature_index, weight) pairs with no text parsing. Re-running confirmed the fix: of the 15
+   features that used to read exactly zero for every model, 13 now have real values; the remaining
+   2 (`REG_M_PRICE`, `count`) are genuinely constant columns in this sample, so zero is correct for
+   them. The same fix was applied to TradeFraud's LIME script too, even though no TradeFraud feature
+   name happened to collide this way.
+3. ~~**`oot_01_201212` is 2 days long.**~~ **Fixed.** `create_samples.py` now cuts OOT on a
+   calendar-month boundary instead of "max date − 60 days"; `oot_01` is a full December 2012
+   (2,925 rows). All DemandForecast models were retrained on the corrected splits.
+4. ~~**TabNet early-stopped on the evaluation set (TradeFraud).**~~ **Fixed.** TradeFraud's
+   `train_model7_tabnet.py` now carves its early-stopping split from training data only, the same
+   pattern XGBoost and LightGBM already used. (DemandForecast's TabNet and LSTM scripts were checked
+   and turned out to already do this correctly — they were never affected.)
+5. ~~**Decision thresholds re-tuned on every test set.**~~ **Fixed for TradeFraud.** Every TradeFraud
+   classification/anomaly script now chooses one F1-maximising threshold on Validation OOS only
+   (`select_f1_threshold`) and reuses it unchanged on every other split (`metrics_at_threshold`).
+6. ~~**No confidence intervals.**~~ **Fixed for TradeFraud.** Every AUC-ROC in a TradeFraud scorecard
+   now ships with a bootstrap 95% CI (`bootstrap_auc_ci`, 1,000 resamples). The CIs are wide — see
+   Section 4 — which is the point: it makes the real uncertainty impossible to miss.
+7. ~~**No pinned dependency list.**~~ **Fixed.** `requirements.txt` at the repo root pins every
+   package to the version verified working together (see its header comment for a macOS-specific
+   `libomp` / `scipy` note we hit and resolved while doing this work).
+
+### Still open
+
+8. **The DemandForecast "LSTM" is not temporal.** It is fed sequences of length 1, which makes it a
+   plain feed-forward network. A genuine 28-day sequence model is needed for the proposal's temporal
+   architecture family. (SalesForecasting's LSTM already does this properly and can be adapted.)
+   This is Phase 2 work, not Phase 0 — it is a model-architecture change, not a correctness fix.
+9. **Autoencoder preprocessing.** Heavy-tailed amount columns are not log-transformed, so a few
+   columns dominate the reconstruction error. Also Phase 2 work.
+10. **Hosmer-Lemeshow calibration charts exist but should not be interpreted.** Every model
+    deliberately distorts its probabilities (`scale_pos_weight`, SMOTE, `class_weight='balanced'`),
+    and the autoencoder's "probability" is a min-max-scaled reconstruction error, so a calibration
+    test on it is not meaningful.
+11. **Attribution outputs are not version-controlled.** `.gitignore` excludes `*.csv`, so
     `shap_global.csv` and friends exist only locally. They are our evidence and should be committed.
-11. **No automated tests, and no pinned dependency list.** The proposal requires ≥85% test coverage
-    for the final SDK.
-12. **Model numbering skips Model 1** (models run 2–7), a leftover from an earlier numbering scheme.
+12. **No automated tests.** The proposal requires ≥85% test coverage for the final SDK;
+    `src/eval_utils.py` has been exercised against synthetic data by hand but has no pytest suite yet.
+13. **Model numbering skips Model 1** (models run 2–7), a leftover from an earlier numbering scheme.
+14. **DemandForecast OOS is still split by brand (3 held-out brands), not by product.** The
+    calendar-month fix (item 3) did not change this — it remains the most likely explanation for
+    OOS R² being low and similar across every model (Section 4).
 
 ---
 
@@ -329,7 +370,7 @@ depends on clean inputs.
 
 | Phase | Work |
 |---|---|
-| **0. Fix and freeze** | Pin dependencies; resolve the dispute duplication; stop early-stopping on evaluation sets; fix one threshold per model; add bootstrap confidence intervals; fix the LIME substring bug; fix the DemandForecast OOT months. |
+| **0. Fix and freeze** | ✅ **Done** (Section 7). Pinned dependencies; deduplicated disputes everywhere; moved TabNet's early stopping off the evaluation set; fixed one threshold per model; added bootstrap confidence intervals; fixed the LIME substring bug; fixed the DemandForecast OOT months and retrained everything on the corrected splits. |
 | **1. Finish baseline explainability** | Local (per-instance) SHAP and LIME for high-risk, borderline and misclassified cases; DemandForecast cohort level; per-instance τ between SHAP and LIME as the *baseline* consensus. |
 | **2. Advanced models** | Rebuild the autoencoder with proper preprocessing; add the VAE; retrain TabNet cleanly; build a genuine sequence LSTM. |
 | **3. The Tri-Explainer** | Adapted SHAP (with background-sensitivity study), Manifold-LIME, LRD — plus latency measurement and a synthetic ground-truth test. |
