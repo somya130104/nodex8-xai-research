@@ -235,16 +235,64 @@ an exact fast one exists would be wasteful and less accurate:
 - **TreeSHAP** for XGBoost / Random Forest / LightGBM — exact and fast for tree models.
 - **LinearSHAP** for Logistic Regression and OLS.
 
-**Decision: three levels of aggregation**, as required:
+**Decision: three levels of aggregation**, as required — **all three are now done for both
+datasets** (Phase 1, see ROADMAP.md):
 
 | Level | What it answers | Status |
 |---|---|---|
-| **Global** | Across everyone, which features matter most on average? | Done (both datasets) |
-| **Decile / Cohort** | Within each risk decile and each customer segment, which features matter? | Done for TradeFraud; pending for DemandForecast |
-| **Local** | For *this one* client, why were they flagged? (the regulatory adverse-action notice) | **Not yet done** |
+| **Global** | Across everyone, which features matter most on average? | ✅ Done (both datasets) |
+| **Decile / Cohort** | Within each risk decile / segment / brand / day-type, which features matter? | ✅ Done (both datasets) |
+| **Local** | For *this one* client, why were they flagged? (the regulatory adverse-action notice) | ✅ Done (both datasets) |
 
 For TradeFraud the cohorts are the segment fields that come with the data: `Segment`
 (Gentry, Heartlanders, Novices, …), `Activeness_Segment` (Dormant … Power Trader), and risk decile.
+For DemandForecast, which has no equivalent segment field, the cohorts are **Brand**, **DayType**
+(one mutually-exclusive bucket per row, in priority order Holiday > Promotion > Weekend > Weekday —
+see `data/DemandForecast/scripts/cohort_utils.py`), and predicted-demand decile.
+
+### Local (per-instance) explanations — Phase 1
+
+For each of the 4 baseline models per dataset, **15 representative instances** are picked from
+Validation OOS and explained with both SHAP and LIME on the exact same 15 cases, so the two can be
+compared instance-by-instance (`run_local_explanations.py` in each dataset's `scripts/`):
+
+- **TradeFraud** (classification): 5 highest-risk, 5 borderline (closest to that model's own fixed
+  `Threshold_Used` from Phase 0 — not 0.5), 5 misclassified (a mix of false positives and false
+  negatives, since these are more informative than confidently-correct cases).
+- **DemandForecast** (regression, which has no decision threshold or misclassification concept):
+  5 highest-predicted-demand, 5 borderline (closest to the median prediction), 5 highest-error
+  (largest |actual − predicted|) — see `src/local_explain_utils.py` for the exact selection logic and
+  why each bucket is regression's honest equivalent of the classification one.
+
+Each instance also gets a short, templated plain-English sentence generated from its top-3 SHAP
+features (`local_explanations.csv`) — this is the actual adverse-action-notice text, e.g.:
+*"This case was classified as Dispute (predicted probability 0.585 against a decision threshold of
+0.325), primarily because: (1) `cash_AvgTradePerTradingMonth` increased the predicted risk; (2)
+`cash_AvgTradePerTradingDay` increased the predicted risk; (3) `cash_Td_Samt` increased the predicted
+risk."*
+
+**A same-model, same-instance SHAP-vs-LIME agreement number** is also computed for each of the 15
+cases (`baseline_instance_cli.csv`, via `src/eval_utils.baseline_instance_tau`). This is explicitly
+a **placeholder, not the proposal's CLI** — it uses `scipy.stats.weightedtau` rather than a
+from-scratch, unit-tested weighted Kendall's τ, and compares only one pair of explainers (SHAP, LIME)
+rather than the three the proposal specifies (Adapted SHAP, Manifold-LIME, LRD). It exists only as an
+early rehearsal; Phase 4 builds the real thing. Observed baseline agreement: TradeFraud's four models
+average τ ≈ 0.25–0.28 across the three case types; DemandForecast's average τ ≈ 0.46–0.53 — consistent
+with the global-level finding (Section 4) that DemandForecast's explainers agree with each other more
+than TradeFraud's do.
+
+### `feature_hierarchy.csv` — Phase 1
+
+Both datasets now have a `feature_hierarchy.csv` in `XAI_Outputs/`, mapping every model feature to a
+Sub-Group → Group with equal weights within each, in the same format as SalesForecasting's reference
+file. This is what will let later work report "Promotional Activity: 31%" instead of 51 or 271
+individual feature rows:
+- **TradeFraud**: built directly from `Data/variable_dictionary.csv`'s existing Group/Sub_Group
+  columns (`build_feature_hierarchy.py`) — all 271 model features mapped, no manual categorisation
+  needed.
+- **DemandForecast**: no such reference file exists, so the mapping is hand-built from the feature
+  names (`build_feature_hierarchy.py`) into 5 groups (Pricing, Competitor, Promotion, Calendar &
+  Seasonality, Demand History) — all 51 model features mapped.
 
 ---
 
@@ -371,7 +419,7 @@ depends on clean inputs.
 | Phase | Work |
 |---|---|
 | **0. Fix and freeze** | ✅ **Done** (Section 7). Pinned dependencies; deduplicated disputes everywhere; moved TabNet's early stopping off the evaluation set; fixed one threshold per model; added bootstrap confidence intervals; fixed the LIME substring bug; fixed the DemandForecast OOT months and retrained everything on the corrected splits. |
-| **1. Finish baseline explainability** | Local (per-instance) SHAP and LIME for high-risk, borderline and misclassified cases; DemandForecast cohort level; per-instance τ between SHAP and LIME as the *baseline* consensus. |
+| **1. Finish baseline explainability** | ✅ **Done** (Section 5). Local (per-instance) SHAP and LIME for high-risk/high-value, borderline and misclassified/high-error cases; DemandForecast cohort level (Brand/DayType/Decile); per-instance placeholder τ between SHAP and LIME; `feature_hierarchy.csv` for both datasets. |
 | **2. Advanced models** | Rebuild the autoencoder with proper preprocessing; add the VAE; retrain TabNet cleanly; build a genuine sequence LSTM. |
 | **3. The Tri-Explainer** | Adapted SHAP (with background-sensitivity study), Manifold-LIME, LRD — plus latency measurement and a synthetic ground-truth test. |
 | **4. CLI** | Weighted Kendall's τ, per-instance CLI per the proposal's Equation (1), aggregation by decile/segment/time, and calibration of the uncertainty gate. |

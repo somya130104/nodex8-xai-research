@@ -24,6 +24,7 @@ script, so the fix is centralised here instead of copy-pasted six times:
 """
 import numpy as np
 import pandas as pd
+from scipy.stats import weightedtau
 from sklearn.metrics import (
     roc_auc_score, average_precision_score, f1_score,
     precision_score, recall_score, confusion_matrix,
@@ -125,6 +126,32 @@ def bootstrap_auc_ci(y_true, y_score, n_boot: int = 1000, seed: int = 42,
     lo = float(np.percentile(boot_aucs, 100 * alpha / 2))
     hi = float(np.percentile(boot_aucs, 100 * (1 - alpha / 2)))
     return float(point), round(lo, 4), round(hi, 4)
+
+
+def baseline_instance_tau(attr_a, attr_b):
+    """
+    Placeholder weighted-τ agreement between two explainers' attribution
+    vectors for ONE instance (Phase 1's rehearsal of a same-model,
+    same-instance "baseline CLI" between SHAP and LIME).
+
+    This is NOT the final CLI implementation. Phase 4 builds and
+    unit-tests a proper weighted_kendall_tau() exactly per the proposal's
+    Equation 1 (hyperbolic top-k weighting, validated against known
+    swap-at-the-top vs swap-at-the-bottom behaviour). This wrapper exists
+    only so Phase 1's local-explanation outputs can report an approximate
+    same-model SHAP-vs-LIME agreement number using scipy's built-in
+    weighted tau, without duplicating that unwritten Phase 4 code early
+    and incorrectly. Ranks are derived from absolute attribution (which
+    feature matters more), not from signed attribution (push up vs down).
+    """
+    a = np.asarray(attr_a, dtype=float)
+    b = np.asarray(attr_b, dtype=float)
+    if a.shape != b.shape or len(a) < 2:
+        return None
+    tau, _ = weightedtau(np.abs(a), np.abs(b))
+    if tau is None or np.isnan(tau):
+        return None
+    return float(tau)
 
 
 def bootstrap_auc_pr_ci(y_true, y_score, n_boot: int = 1000, seed: int = 42,

@@ -48,10 +48,14 @@ writing it up once steps 1–3 exist.
 
 ---
 
-## Phase 1 — Finish Baseline Explainability
+## Phase 1 — Finish Baseline Explainability ✅ Done
 
 **Duration estimate:** ~2 weeks
 **Depends on:** Phase 0 (done)
+**Status:** implemented and verified by actually running every script — see ARCHITECTURE.md
+Section 5 for what was built, the real example output, and the baseline instance-CLI numbers
+observed. The checklist and "how to know you're done" sections below are kept as-written for
+reference; every item in the checklist is checked off.
 **Why this phase exists:** Angshuman's explicit instruction was *"For each model use SHAP and LIME
 for first level explainability. Our target is to produce global, local, and at decile/cohort level."*
 Global and cohort levels are done. **Local (per-instance) is missing entirely**, and this is the
@@ -721,16 +725,16 @@ Code review with NodeX8, a project presentation, and a final walkthrough of the 
 
 ## Quick-Reference Timeline
 
-| Phase | What | Duration | Depends on |
-|---|---|---|---|
+| Phase | What | Duration | Depends on | Status |
+|---|---|---|---|---|
 | 0 | Fix and freeze | — | — | ✅ **Done** |
-| 1 | Local explanations, DemandForecast cohorts | ~2 weeks | Phase 0 |
-| 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 |
-| 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 |
-| 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 |
-| 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 |
-| 6 | `claris_deep_xai` SDK packaging | ~2 weeks | Phases 3–5 |
-| 7 | Paper, thesis, handover | ~3 weeks | Everything |
+| 1 | Local explanations, DemandForecast cohorts | ~2 weeks | Phase 0 | ✅ **Done** |
+| 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 | |
+| 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 | |
+| 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 | |
+| 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 | |
+| 6 | `claris_deep_xai` SDK packaging | ~2 weeks | Phases 3–5 | |
+| 7 | Paper, thesis, handover | ~3 weeks | Everything | |
 
 **Total: roughly 18–19 weeks** from here, which fits comfortably inside the proposal's 6-month term
 (with Phase 0 already behind you) and leaves some buffer. Phases 1 and 2 can run in parallel if more

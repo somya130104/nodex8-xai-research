@@ -10,6 +10,13 @@ feature — 15 features (every C_* competitor feature, lag_14, day_of_week,
 discount_pct, etc.) ended up with a LIME weight of exactly zero for every
 model. The fix uses exp.as_map(), which LIME returns as (feature_index,
 weight) pairs with no string parsing involved.
+
+Phase 1.2 addition: cohort-level LIME (by Brand, DayType, predicted-demand
+Decile), computed over the same 100-instance sample already drawn for global
+LIME. This is a lighter rehearsal of the cohort split than the full-OOS SHAP
+cohort in run_baseline_shap.py — LIME is far slower, so cohorts here are
+necessarily smaller (some bins may fall below the 5-instance minimum and get
+skipped).
 """
 import os
 import pickle
@@ -18,6 +25,8 @@ import pandas as pd
 import lime
 import lime.lime_tabular
 import warnings
+
+from cohort_utils import assign_day_type
 
 warnings.filterwarnings("ignore")
 
@@ -65,8 +74,11 @@ def run_lime():
     sample_idx = np.random.RandomState(42).choice(len(X_oos), min(100, len(X_oos)), replace=False)
     X_sample_tree = X_oos.iloc[sample_idx]
     X_sample_lin = X_oos_dummy.iloc[sample_idx]
-    
+    df_sample = df_oos.iloc[sample_idx].copy()
+    df_sample["DayType"] = assign_day_type(df_sample)
+
     lime_global_results = []
+    lime_cohort_results = []
     
     for model_name, pkl_name, family in MODELS:
         print(f"\n--- Processing {model_name} ---")
@@ -144,10 +156,48 @@ def run_lime():
                 "Feature": f,
                 "Mean_Abs_LIME": val
             })
-            
+
+        # Cohort LIME, over the same 100-instance sample used for global LIME
+        # (small cohorts here — this is a lighter-weight rehearsal of the
+        # cohort split, not a replacement for the larger SHAP cohort above,
+        # which runs over the full OOS set).
+        preds = predict_fn(X_eval_proc)
+        df_sample["pred_qty"] = preds
+        decile = pd.qcut(df_sample["pred_qty"].rank(method="first"), 10,
+                          labels=[f"D{i}" for i in range(1, 11)], duplicates="drop")
+        df_sample["Decile"] = decile
+
+        for brand in df_sample["BRAND"].dropna().unique():
+            idx = (df_sample["BRAND"] == brand).values
+            if idx.sum() > 5:
+                brand_lime = np.abs(lime_values[idx]).mean(axis=0)
+                for f, val in zip(features_used, brand_lime):
+                    lime_cohort_results.append({
+                        "Model": model_name, "Brand": brand, "Feature": f, "Mean_Abs_LIME": val,
+                    })
+
+        for day_type in df_sample["DayType"].unique():
+            idx = (df_sample["DayType"] == day_type).values
+            if idx.sum() > 5:
+                dt_lime = np.abs(lime_values[idx]).mean(axis=0)
+                for f, val in zip(features_used, dt_lime):
+                    lime_cohort_results.append({
+                        "Model": model_name, "DayType": day_type, "Feature": f, "Mean_Abs_LIME": val,
+                    })
+
+        for dec in df_sample["Decile"].dropna().unique():
+            idx = (df_sample["Decile"] == dec).values
+            if idx.sum() > 5:
+                dec_lime = np.abs(lime_values[idx]).mean(axis=0)
+                for f, val in zip(features_used, dec_lime):
+                    lime_cohort_results.append({
+                        "Model": model_name, "Decile": dec, "Feature": f, "Mean_Abs_LIME": val,
+                    })
+
         print(f"  Finished LIME for {model_name}")
 
     pd.DataFrame(lime_global_results).to_csv(os.path.join(OUTPUT_DIR, "lime_global.csv"), index=False)
+    pd.DataFrame(lime_cohort_results).to_csv(os.path.join(OUTPUT_DIR, "lime_cohort.csv"), index=False)
     print("\n✅ LIME extraction complete! Outputs in", OUTPUT_DIR)
 
 if __name__ == "__main__":
