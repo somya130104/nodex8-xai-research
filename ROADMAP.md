@@ -252,7 +252,7 @@ the "memory" isn't actually being used, and something is still wrong).
 
 ---
 
-## Phase 3 — The Tri-Explainer Framework
+## Phase 3 — The Tri-Explainer Framework ✅ Done
 
 **Duration estimate:** ~4–5 weeks (this is the largest phase — the proposal says to spend ~80% of
 remaining time here and in Phase 4)
@@ -736,7 +736,7 @@ Code review with NodeX8, a project presentation, and a final walkthrough of the 
 | 0 | Fix and freeze | — | — | ✅ **Done** |
 | 1 | Local explanations, DemandForecast cohorts | ~2 weeks | Phase 0 | ✅ **Done** |
 | 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 | ✅ **Done** |
-| 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 | |
+| 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 | ✅ **Done** |
 | 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 | |
 | 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 | |
 | 6 | `claris_deep_xai` SDK packaging | ~2 weeks | Phases 3–5 | |

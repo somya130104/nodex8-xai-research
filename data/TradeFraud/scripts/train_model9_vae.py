@@ -43,6 +43,7 @@ from src.eval_utils import (
     dedupe_rows, select_f1_threshold, metrics_at_threshold, bootstrap_auc_ci,
 )
 from src.autoencoder_preprocessing import AutoencoderPreprocessor
+from src.autoencoder_models import VAE
 from sklearn.metrics import average_precision_score
 
 warnings.filterwarnings("ignore")
@@ -72,60 +73,7 @@ KL_ANNEAL_FRACTION = 0.2  # beta ramps 0 -> 1 over the first 20% of training epo
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-class VAE(nn.Module):
-    """
-    encode(x) -> (mu, logvar): the distribution over the latent code.
-    reparameterize(mu, logvar) -> z: the actual sampled code used for
-      reconstruction during training (adds the randomness that lets
-      gradients flow through a stochastic node).
-    decode(z) -> x_hat.
-
-    For SCORING (anomaly detection) and for Phase 3's LRD, z = mu is used
-    deterministically (no sampling) — see score() below — so that a given
-    input always gets the same reconstruction error and the same Jacobian,
-    which LRD's back-projection requires.
-    """
-    def __init__(self, input_dim, hidden_dims, latent_dim):
-        super().__init__()
-        enc = []
-        prev = input_dim
-        for h in hidden_dims:
-            enc += [nn.Linear(prev, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(0.2)]
-            prev = h
-        self.encoder_body = nn.Sequential(*enc)
-        self.fc_mu = nn.Linear(prev, latent_dim)
-        self.fc_logvar = nn.Linear(prev, latent_dim)
-
-        dec = []
-        prev = latent_dim
-        for h in reversed(hidden_dims):
-            dec += [nn.Linear(prev, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(0.2)]
-            prev = h
-        dec.append(nn.Linear(prev, input_dim))
-        self.decoder = nn.Sequential(*dec)
-
-    def encode(self, x):
-        h = self.encoder_body(x)
-        return self.fc_mu(h), self.fc_logvar(h)
-
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return mu + eps * std
-
-    def decode(self, z):
-        return self.decoder(z)
-
-    def forward(self, x):
-        mu, logvar = self.encode(x)
-        z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar
-
-    def score(self, x):
-        """Deterministic reconstruction error using z = mu (no sampling)."""
-        mu, _ = self.encode(x)
-        x_hat = self.decode(mu)
-        return torch.mean((x - x_hat) ** 2, dim=1)
+# VAE class now lives in src/autoencoder_models.py (importable by Phase 3's explainers)
 
 
 def vae_loss(x, x_hat, mu, logvar, beta):

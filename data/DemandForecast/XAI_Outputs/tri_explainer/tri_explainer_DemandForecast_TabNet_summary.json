@@ -1,0 +1,602 @@
+{
+  "scalar_mean_by_group": {
+    "all": 5.925837993621826,
+    "negatives": 5.925837993621826
+  },
+  "model": "DemandForecast_TabNet",
+  "n_instances": 250,
+  "n_columns": 51,
+  "n_positive": 0,
+  "primary_variants": {
+    "AdaptedSHAP": "ig_kmeans",
+    "ManifoldLIME": "lime_manifold",
+    "LRD": "lrd_lam0.5"
+  },
+  "rawmean_baseline_note": "DemandForecast has no log transform, so the raw mean IS the origin (identical to the zeros baseline). The training MEDIAN, in standardised units, is used here instead so this slot is a genuinely different 'typical client' reference.",
+  "ig_completeness": {
+    "ig_zeros": {
+      "mean_abs_residual": 0.6505239605903625,
+      "mean_abs_residual_over_mean_scalar": 0.10969765484333038
+    },
+    "ig_rawmean": {
+      "mean_abs_residual": 0.5883660912513733,
+      "mean_abs_residual_over_mean_scalar": 0.09921599179506302
+    },
+    "ig_kmeans": {
+      "mean_abs_residual": 1.0581583976745605,
+      "mean_abs_residual_over_mean_scalar": 0.17843692004680634
+    },
+    "ig_nn": {
+      "mean_abs_residual": 0.6079431176185608,
+      "mean_abs_residual_over_mean_scalar": 0.1025172621011734
+    }
+  },
+  "baseline_geometry": {
+    "max_abs_mean_of_reference": 9.649534860045605e-08,
+    "l2_zeros_to_rawmean": 3.2141096591949463
+  },
+  "ledoit_wolf_shrinkage": 0.0006674410776157267,
+  "background_sensitivity": [
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "ig_rawmean",
+      "mean_tau_all": 0.6952,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.6952,
+      "mean_top10_jaccard": 0.5593
+    },
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "ig_kmeans",
+      "mean_tau_all": 0.6404,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.6404,
+      "mean_top10_jaccard": 0.5536
+    },
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "ig_nn",
+      "mean_tau_all": 0.5312,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.5312,
+      "mean_top10_jaccard": 0.3576
+    },
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.6369,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.6369,
+      "mean_top10_jaccard": 0.5112
+    },
+    {
+      "variant_a": "ig_rawmean",
+      "variant_b": "ig_kmeans",
+      "mean_tau_all": 0.535,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.535,
+      "mean_top10_jaccard": 0.4812
+    },
+    {
+      "variant_a": "ig_rawmean",
+      "variant_b": "ig_nn",
+      "mean_tau_all": 0.552,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.552,
+      "mean_top10_jaccard": 0.3655
+    },
+    {
+      "variant_a": "ig_rawmean",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.578,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.578,
+      "mean_top10_jaccard": 0.4703
+    },
+    {
+      "variant_a": "ig_kmeans",
+      "variant_b": "ig_nn",
+      "mean_tau_all": 0.5042,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.5042,
+      "mean_top10_jaccard": 0.3628
+    },
+    {
+      "variant_a": "ig_kmeans",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.7023,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.7023,
+      "mean_top10_jaccard": 0.5653
+    },
+    {
+      "variant_a": "ig_nn",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.5002,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.5002,
+      "mean_top10_jaccard": 0.3527
+    }
+  ],
+  "manifold_lime_diagnostics": [
+    {
+      "metric": "local_fidelity_r2_mean",
+      "mode": "manifold",
+      "group": "all",
+      "value": 0.75852
+    },
+    {
+      "metric": "local_fidelity_r2_median",
+      "mode": "manifold",
+      "group": "all",
+      "value": 0.77364
+    },
+    {
+      "metric": "local_fidelity_r2_mean",
+      "mode": "manifold_noround",
+      "group": "all",
+      "value": 0.7113
+    },
+    {
+      "metric": "local_fidelity_r2_median",
+      "mode": "manifold_noround",
+      "group": "all",
+      "value": 0.72863
+    },
+    {
+      "metric": "local_fidelity_r2_mean",
+      "mode": "vanilla",
+      "group": "all",
+      "value": 0.66612
+    },
+    {
+      "metric": "local_fidelity_r2_median",
+      "mode": "vanilla",
+      "group": "all",
+      "value": 0.68744
+    },
+    {
+      "metric": "mean_nn_distance_of_perturbations_to_real_rows",
+      "mode": "manifold",
+      "group": "diag_subset",
+      "value": 2.78271
+    },
+    {
+      "metric": "frac_perturbed_entries_clipped_to_range",
+      "mode": "manifold",
+      "group": "diag_subset",
+      "value": 0.31208
+    },
+    {
+      "metric": "mean_nn_distance_of_perturbations_to_real_rows",
+      "mode": "manifold_noround",
+      "group": "diag_subset",
+      "value": 2.89333
+    },
+    {
+      "metric": "frac_perturbed_entries_clipped_to_range",
+      "mode": "manifold_noround",
+      "group": "diag_subset",
+      "value": 0.31208
+    },
+    {
+      "metric": "mean_nn_distance_of_perturbations_to_real_rows",
+      "mode": "vanilla",
+      "group": "diag_subset",
+      "value": 2.98081
+    },
+    {
+      "metric": "frac_perturbed_entries_clipped_to_range",
+      "mode": "vanilla",
+      "group": "diag_subset",
+      "value": 0.31096
+    },
+    {
+      "metric": "mean_nn_distance_of_REAL_rows_to_other_real_rows",
+      "mode": "reference",
+      "group": "reference",
+      "value": 3.09885
+    },
+    {
+      "metric": "stability_mean_pairwise_tau_over_5_seeds",
+      "mode": "manifold",
+      "group": "diag_subset",
+      "value": 0.7459
+    },
+    {
+      "metric": "stability_mean_pairwise_tau_over_5_seeds",
+      "mode": "manifold_noround",
+      "group": "diag_subset",
+      "value": 0.62
+    },
+    {
+      "metric": "stability_mean_pairwise_tau_over_5_seeds",
+      "mode": "vanilla",
+      "group": "diag_subset",
+      "value": 0.73051
+    }
+  ],
+  "manifold_lime_sweeps": [
+    {
+      "scale": 0.1,
+      "ridge_alpha": 1.0,
+      "mode": "manifold",
+      "mean_stability_tau": 0.7797,
+      "mean_fidelity_r2": 0.8538,
+      "mean_nn_distance_to_real_rows": 2.4719
+    },
+    {
+      "scale": 0.1,
+      "ridge_alpha": 1.0,
+      "mode": "manifold_noround",
+      "mean_stability_tau": 0.6205,
+      "mean_fidelity_r2": 0.8585,
+      "mean_nn_distance_to_real_rows": 2.4826
+    },
+    {
+      "scale": 0.1,
+      "ridge_alpha": 1.0,
+      "mode": "vanilla",
+      "mean_stability_tau": 0.7034,
+      "mean_fidelity_r2": 0.8,
+      "mean_nn_distance_to_real_rows": 2.493
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 1.0,
+      "mode": "manifold",
+      "mean_stability_tau": 0.7086,
+      "mean_fidelity_r2": 0.8244,
+      "mean_nn_distance_to_real_rows": 2.7479
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 1.0,
+      "mode": "manifold_noround",
+      "mean_stability_tau": 0.5614,
+      "mean_fidelity_r2": 0.7788,
+      "mean_nn_distance_to_real_rows": 2.8524
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 1.0,
+      "mode": "vanilla",
+      "mean_stability_tau": 0.6683,
+      "mean_fidelity_r2": 0.7426,
+      "mean_nn_distance_to_real_rows": 2.9316
+    },
+    {
+      "scale": 1.0,
+      "ridge_alpha": 1.0,
+      "mode": "manifold",
+      "mean_stability_tau": 0.5141,
+      "mean_fidelity_r2": 0.836,
+      "mean_nn_distance_to_real_rows": 4.1445
+    },
+    {
+      "scale": 1.0,
+      "ridge_alpha": 1.0,
+      "mode": "manifold_noround",
+      "mean_stability_tau": 0.4844,
+      "mean_fidelity_r2": 0.7662,
+      "mean_nn_distance_to_real_rows": 4.4679
+    },
+    {
+      "scale": 1.0,
+      "ridge_alpha": 1.0,
+      "mode": "vanilla",
+      "mean_stability_tau": 0.6731,
+      "mean_fidelity_r2": 0.5822,
+      "mean_nn_distance_to_real_rows": 5.4296
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 10.0,
+      "mode": "manifold",
+      "mean_stability_tau": 0.728,
+      "mean_fidelity_r2": 0.6629,
+      "mean_nn_distance_to_real_rows": NaN
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 10.0,
+      "mode": "manifold_noround",
+      "mean_stability_tau": 0.6722,
+      "mean_fidelity_r2": 0.7593,
+      "mean_nn_distance_to_real_rows": NaN
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 10.0,
+      "mode": "vanilla",
+      "mean_stability_tau": 0.672,
+      "mean_fidelity_r2": 0.7419,
+      "mean_nn_distance_to_real_rows": NaN
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 100.0,
+      "mode": "manifold",
+      "mean_stability_tau": 0.7108,
+      "mean_fidelity_r2": 0.3058,
+      "mean_nn_distance_to_real_rows": NaN
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 100.0,
+      "mode": "manifold_noround",
+      "mean_stability_tau": 0.7536,
+      "mean_fidelity_r2": 0.6346,
+      "mean_nn_distance_to_real_rows": NaN
+    },
+    {
+      "scale": 0.3,
+      "ridge_alpha": 100.0,
+      "mode": "vanilla",
+      "mean_stability_tau": 0.6699,
+      "mean_fidelity_r2": 0.7008,
+      "mean_nn_distance_to_real_rows": NaN
+    }
+  ],
+  "faithfulness_all": {
+    "donor": [
+      {
+        "variant": "ig_zeros",
+        "mean_top_effect": 4.9671,
+        "mean_bottom_effect": 0.2086,
+        "top_over_bottom_ratio": 23.8141,
+        "top_over_random_ratio": 3.9609,
+        "frac_instances_top_gt_bottom": 0.972,
+        "mean_top_reduction": -0.6443
+      },
+      {
+        "variant": "ig_rawmean",
+        "mean_top_effect": 4.1196,
+        "mean_bottom_effect": 0.3072,
+        "top_over_bottom_ratio": 13.4095,
+        "top_over_random_ratio": 3.2851,
+        "frac_instances_top_gt_bottom": 0.984,
+        "mean_top_reduction": 0.8741
+      },
+      {
+        "variant": "ig_kmeans",
+        "mean_top_effect": 5.2862,
+        "mean_bottom_effect": 0.0385,
+        "top_over_bottom_ratio": 137.3934,
+        "top_over_random_ratio": 4.2154,
+        "frac_instances_top_gt_bottom": 0.988,
+        "mean_top_reduction": -1.2501
+      },
+      {
+        "variant": "ig_nn",
+        "mean_top_effect": 4.5079,
+        "mean_bottom_effect": 0.8606,
+        "top_over_bottom_ratio": 5.2381,
+        "top_over_random_ratio": 3.5947,
+        "frac_instances_top_gt_bottom": 0.892,
+        "mean_top_reduction": -0.8061
+      },
+      {
+        "variant": "gradient_shap",
+        "mean_top_effect": 4.6404,
+        "mean_bottom_effect": 0.1481,
+        "top_over_bottom_ratio": 31.3241,
+        "top_over_random_ratio": 3.7004,
+        "frac_instances_top_gt_bottom": 0.992,
+        "mean_top_reduction": -0.4774
+      },
+      {
+        "variant": "lime_manifold",
+        "mean_top_effect": 3.6141,
+        "mean_bottom_effect": 0.334,
+        "top_over_bottom_ratio": 10.8198,
+        "top_over_random_ratio": 2.882,
+        "frac_instances_top_gt_bottom": 0.92,
+        "mean_top_reduction": 0.4591
+      },
+      {
+        "variant": "lime_manifold_noround",
+        "mean_top_effect": 3.1001,
+        "mean_bottom_effect": 0.5495,
+        "top_over_bottom_ratio": 5.6419,
+        "top_over_random_ratio": 2.4721,
+        "frac_instances_top_gt_bottom": 0.824,
+        "mean_top_reduction": 0.5352
+      },
+      {
+        "variant": "lime_vanilla",
+        "mean_top_effect": 4.2062,
+        "mean_bottom_effect": 0.4624,
+        "top_over_bottom_ratio": 9.0971,
+        "top_over_random_ratio": 3.3542,
+        "frac_instances_top_gt_bottom": 0.928,
+        "mean_top_reduction": 0.2355
+      },
+      {
+        "variant": "tabnet_native_mask",
+        "mean_top_effect": 4.3407,
+        "mean_bottom_effect": 0.453,
+        "top_over_bottom_ratio": 9.5825,
+        "top_over_random_ratio": 3.4614,
+        "frac_instances_top_gt_bottom": 0.96,
+        "mean_top_reduction": -0.5773
+      },
+      {
+        "variant": "RANDOM_ranking",
+        "mean_top_effect": 1.2766,
+        "mean_bottom_effect": 1.278,
+        "top_over_bottom_ratio": 0.9989,
+        "top_over_random_ratio": 1.018,
+        "frac_instances_top_gt_bottom": 0.468,
+        "mean_top_reduction": 0.2171
+      }
+    ],
+    "zero": [
+      {
+        "variant": "ig_zeros",
+        "mean_top_effect": 2.9728,
+        "mean_bottom_effect": 0.0264,
+        "top_over_bottom_ratio": 112.7217,
+        "top_over_random_ratio": 3.0412,
+        "frac_instances_top_gt_bottom": 0.996,
+        "mean_top_reduction": 1.0614
+      },
+      {
+        "variant": "ig_rawmean",
+        "mean_top_effect": 3.062,
+        "mean_bottom_effect": 0.1372,
+        "top_over_bottom_ratio": 22.3189,
+        "top_over_random_ratio": 3.1325,
+        "frac_instances_top_gt_bottom": 0.972,
+        "mean_top_reduction": 0.8502
+      },
+      {
+        "variant": "ig_kmeans",
+        "mean_top_effect": 3.0219,
+        "mean_bottom_effect": 0.0455,
+        "top_over_bottom_ratio": 66.3969,
+        "top_over_random_ratio": 3.0914,
+        "frac_instances_top_gt_bottom": 0.996,
+        "mean_top_reduction": 0.7057
+      },
+      {
+        "variant": "ig_nn",
+        "mean_top_effect": 2.4728,
+        "mean_bottom_effect": 0.6878,
+        "top_over_bottom_ratio": 3.5954,
+        "top_over_random_ratio": 2.5297,
+        "frac_instances_top_gt_bottom": 0.896,
+        "mean_top_reduction": 0.5578
+      },
+      {
+        "variant": "gradient_shap",
+        "mean_top_effect": 3.1535,
+        "mean_bottom_effect": 0.0506,
+        "top_over_bottom_ratio": 62.352,
+        "top_over_random_ratio": 3.226,
+        "frac_instances_top_gt_bottom": 0.992,
+        "mean_top_reduction": 0.5273
+      },
+      {
+        "variant": "lime_manifold",
+        "mean_top_effect": 3.2311,
+        "mean_bottom_effect": 0.2207,
+        "top_over_bottom_ratio": 14.6419,
+        "top_over_random_ratio": 3.3054,
+        "frac_instances_top_gt_bottom": 0.964,
+        "mean_top_reduction": 0.4306
+      },
+      {
+        "variant": "lime_manifold_noround",
+        "mean_top_effect": 3.0987,
+        "mean_bottom_effect": 0.1094,
+        "top_over_bottom_ratio": 28.3209,
+        "top_over_random_ratio": 3.17,
+        "frac_instances_top_gt_bottom": 0.936,
+        "mean_top_reduction": 0.3718
+      },
+      {
+        "variant": "lime_vanilla",
+        "mean_top_effect": 3.2363,
+        "mean_bottom_effect": 0.1927,
+        "top_over_bottom_ratio": 16.7973,
+        "top_over_random_ratio": 3.3107,
+        "frac_instances_top_gt_bottom": 0.98,
+        "mean_top_reduction": 0.7556
+      },
+      {
+        "variant": "tabnet_native_mask",
+        "mean_top_effect": 2.9365,
+        "mean_bottom_effect": 0.3832,
+        "top_over_bottom_ratio": 7.6624,
+        "top_over_random_ratio": 3.004,
+        "frac_instances_top_gt_bottom": 0.912,
+        "mean_top_reduction": 0.3194
+      },
+      {
+        "variant": "RANDOM_ranking",
+        "mean_top_effect": 1.1297,
+        "mean_bottom_effect": 0.8767,
+        "top_over_bottom_ratio": 1.2886,
+        "top_over_random_ratio": 1.1557,
+        "frac_instances_top_gt_bottom": 0.52,
+        "mean_top_reduction": 0.2442
+      }
+    ]
+  },
+  "agreement_preview_placeholder_tau": {
+    "AdaptedSHAP_vs_ManifoldLIME__all": 0.40868451419429647,
+    "AdaptedSHAP_vs_TabNetNative__all": 0.5675979413964738,
+    "ManifoldLIME_vs_TabNetNative__all": 0.37139962076222643,
+    "AdaptedSHAP_vs_ManifoldLIME__negatives": 0.40868451419429647,
+    "AdaptedSHAP_vs_TabNetNative__negatives": 0.5675979413964738,
+    "ManifoldLIME_vs_TabNetNative__negatives": 0.37139962076222643
+  },
+  "latency_ms": [
+    {
+      "explainer": "ig_zeros (50 steps)",
+      "n": 200,
+      "p50_ms": 10.403,
+      "p95_ms": 10.805,
+      "mean_ms": 10.471,
+      "max_ms": 12.232
+    },
+    {
+      "explainer": "ig_kmeans (10 baselines x 50 steps)",
+      "n": 200,
+      "p50_ms": 104.527,
+      "p95_ms": 109.448,
+      "mean_ms": 105.248,
+      "max_ms": 118.744
+    },
+    {
+      "explainer": "gradient_shap (100 baselines, 50 samples)",
+      "n": 200,
+      "p50_ms": 6.532,
+      "p95_ms": 6.871,
+      "mean_ms": 6.569,
+      "max_ms": 7.904
+    },
+    {
+      "explainer": "manifold_lime (2000 samples)",
+      "n": 200,
+      "p50_ms": 56.583,
+      "p95_ms": 62.613,
+      "mean_ms": 56.367,
+      "max_ms": 67.72
+    },
+    {
+      "explainer": "vanilla_lime (2000 samples)",
+      "n": 200,
+      "p50_ms": 59.029,
+      "p95_ms": 64.09,
+      "mean_ms": 59.166,
+      "max_ms": 69.833
+    },
+    {
+      "explainer": "TabNet native mask (reg.explain)",
+      "n": 50,
+      "p50_ms": 1.642,
+      "p95_ms": 1.786,
+      "mean_ms": 1.668,
+      "max_ms": 2.027
+    },
+    {
+      "explainer": "KernelSHAP reference (10 k-means background, default nsamples)",
+      "n": 3,
+      "p50_ms": 558.384,
+      "p95_ms": 579.428,
+      "mean_ms": 547.979,
+      "max_ms": 579.428
+    },
+    {
+      "explainer": "KernelSHAP reference (100-row background, default nsamples)",
+      "n": 3,
+      "p50_ms": 4968.5,
+      "p95_ms": 5237.974,
+      "mean_ms": 5023.878,
+      "max_ms": 5237.974
+    }
+  ],
+  "runtime_seconds": 170.9
+}

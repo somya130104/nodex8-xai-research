@@ -56,6 +56,7 @@ from src.eval_utils import (
     dedupe_rows, select_f1_threshold, metrics_at_threshold, bootstrap_auc_ci,
 )
 from src.autoencoder_preprocessing import AutoencoderPreprocessor
+from src.autoencoder_models import Autoencoder
 
 warnings.filterwarnings("ignore")
 torch.manual_seed(42)
@@ -82,43 +83,7 @@ PATIENCE = 10              # Early stopping patience
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ── Autoencoder Model ─────────────────────────────────────────────────
-class Autoencoder(nn.Module):
-    """
-    encode(x) -> z: all layers except the last get BatchNorm+ReLU+Dropout;
-    the LAST encoder layer (the bottleneck, z) is a plain nn.Linear with no
-    activation and no regularisation, so z is a clean, deterministic,
-    differentiable function of x — required for Phase 3's LRD method, which
-    back-projects a Jacobian through exactly this layer.
-
-    decode(z) -> x_hat: mirrors the encoder in reverse.
-    """
-    def __init__(self, input_dim, hidden_dims):
-        super().__init__()
-        enc = []
-        prev = input_dim
-        for h in hidden_dims[:-1]:
-            enc += [nn.Linear(prev, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(0.2)]
-            prev = h
-        enc.append(nn.Linear(prev, hidden_dims[-1]))  # bottleneck: plain Linear only
-        self.encoder = nn.Sequential(*enc)
-
-        dec = []
-        prev = hidden_dims[-1]
-        for h in reversed(hidden_dims[:-1]):
-            dec += [nn.Linear(prev, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(0.2)]
-            prev = h
-        dec.append(nn.Linear(prev, input_dim))
-        self.decoder = nn.Sequential(*dec)
-
-    def encode(self, x):
-        return self.encoder(x)
-
-    def decode(self, z):
-        return self.decoder(z)
-
-    def forward(self, x):
-        return self.decode(self.encode(x))
+# Autoencoder class now lives in src/autoencoder_models.py (importable by Phase 3's explainers)
 
 # ── Helpers ───────────────────────────────────────────────────────────
 def load_features(fname, feat_cols=None):

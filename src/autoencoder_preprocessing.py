@@ -83,6 +83,45 @@ class AutoencoderPreprocessor:
         X_scaled = self.scaler.transform(X.values).astype(np.float32)
         return np.clip(X_scaled, -self.clip_value, self.clip_value)
 
+    def inverse_transform(self, X_scaled) -> np.ndarray:
+        """
+        Map preprocessed values back to raw feature units (inverse of
+        standardise -> signed-log1p). The [-clip, clip] step is NOT
+        invertible, so a value that was clipped comes back as the raw value
+        at the clip boundary, not its original magnitude. Used by Phase 3 to
+        explain raw-input models (TabNet) in the same preprocessed
+        coordinate system as the autoencoders.
+        """
+        if self.scaler is None:
+            raise RuntimeError("fit() must be called before inverse_transform().")
+        X = self.scaler.inverse_transform(np.asarray(X_scaled, dtype=np.float64))
+        out = pd.DataFrame(X, columns=self.feat_cols)
+        for c in self.log_cols:
+            out[c] = inverse_signed_log1p(out[c].values)
+        return out.values
+
+    def torch_inverse_fn(self, dtype=None):
+        """
+        Differentiable (torch) version of inverse_transform, so gradient-based
+        explainers can back-propagate through the preprocessing into a model
+        that consumes raw values.
+        """
+        import torch
+        dtype = dtype or torch.float32
+        mean = torch.tensor(self.scaler.mean_, dtype=dtype)
+        scale = torch.tensor(self.scaler.scale_, dtype=dtype)
+        log_mask = torch.tensor([c in set(self.log_cols) for c in self.feat_cols])
+
+        def inverse(u):
+            x_log = u * scale + mean
+            # Apply expm1 only where it is meant to be applied: evaluating it on
+            # large raw (non-log) values would overflow to inf, and torch.where
+            # does not stop that inf from turning into NaN in the backward pass.
+            x_safe = torch.where(log_mask, x_log, torch.zeros_like(x_log))
+            x_raw = torch.sign(x_safe) * torch.expm1(torch.abs(x_safe))
+            return torch.where(log_mask, x_raw, x_log)
+        return inverse
+
     def summary(self) -> dict:
         return {
             "skew_threshold": self.skew_threshold,

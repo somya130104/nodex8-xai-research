@@ -2,7 +2,7 @@
 
 **Project:** Explainability and Consensus Attribution for Non-Linear Deep Architectures in Regulated Financial Systems
 **Partners:** NodeX8 AI Technologies Pvt. Ltd. × IIT Kharagpur (HuMICE Lab, Dept. of Industrial & Systems Engineering)
-**Status:** Baseline stage. The core research methods are not built yet — see [What Is Deliberately Not Here Yet](#6-what-is-deliberately-not-here-yet).
+**Status:** The three explainers (Adapted SHAP, Manifold-LIME, LRD) are built and have been put through identical studies on five models (Phase 3). The consensus index (CLI), its uncertainty gate and the formal benchmark suite are **not** built yet — see [What Is Deliberately Not Here Yet](#6-what-is-deliberately-not-here-yet).
 
 This document records **the decisions we have actually made and can defend**, and why we made them.
 It is the honest record of the project. If a number or a claim is not in this file, it is not something
@@ -339,6 +339,174 @@ individual feature rows:
   names (`build_feature_hierarchy.py`) into 5 groups (Pricing, Competitor, Promotion, Calendar &
   Seasonality, Demand History) — all 51 model features mapped.
 
+### Phase 3 — the Tri-Explainer (Adapted SHAP, Manifold-LIME, LRD)
+
+All code is in `src/explainers/`; 33 tests (`python3 -m pytest tests -q`) check the maths against
+cases with known answers (closed-form IG, finite-difference checks of both LRD gradient steps,
+exact recovery of a linear black box by Manifold-LIME, and a hand-built autoencoder that cannot "see"
+some features). One driver (`studies.py`) puts **every** model through the *same* procedures, so
+results are comparable across models: the autoencoder and VAE (TradeFraud, 251 clients: all 51
+validation disputes + 200 random normals), TabNet (same 251 clients), DemandForecast TabNet (250
+random out-of-sample rows) and the 28-day LSTM (120 of those rows; its Manifold-LIME runs in 1,428
+dimensions and is ~25× costlier per client).
+
+**What is explained.** Autoencoder/VAE: the reconstruction error L(x)=Σⱼ(xⱼ−x̂ⱼ)² ("which features make
+this client look anomalous to the model?"). TabNet (TradeFraud): the dispute log-odds. TabNet
+(DemandForecast): predicted demand. LSTM: the output head's score *before* its final ReLU (explaining the
+clamped value would give an all-zero explanation for any client predicted ≤ 0). TabNet was trained on raw
+values, but "realistic neighbours" are only well defined after the log/standardise/clip preprocessing, so
+all explainers work in that preprocessed space and explain TabNet evaluated at the inverse transform; this
+reproduces the real TabNet closely (correlation 0.995, mean |log-odds difference| 0.019 against a spread of 1.13).
+
+**Chosen before any results were seen:** the *primary* variant of each explainer — Adapted SHAP =
+Integrated Gradients averaged over 10 k-means baselines; Manifold-LIME = manifold perturbations
+(Ledoit-Wolf covariance, scale 0.3, range clip, integer snapping); LRD = λ=0.5 — so the headline cannot be
+cherry-picked. Everything else is reported as an ablation.
+
+**Where we deliberately departed from the roadmap, and why**
+
+1. *LRD's Step D could not be satisfied as written.* The roadmap asked for λ chosen so that the
+   attributions sum to L. With the latent term un-normalised (total S ≠ L) the constraint λL+(1−λ)S=L
+   has only the solution λ=1 — the trivial per-feature-error baseline. Normalising the latent term to
+   total L makes completeness hold *by construction* for any λ (verified: max relative error 10⁻⁶), so
+   λ became a free blend that is fixed in advance and openly ablated over {0, 0.5, 1}.
+2. *The "feature-wise mean" baseline* is the arithmetic mean of the **raw** values pushed through the
+   preprocessing. In the standardised space the mean is the origin, which would just duplicate the zeros
+   baseline. (DemandForecast has no log transform, so there the training *median* is used instead.)
+3. *DeepLIFT was excluded:* captum's rules cover `nn.Module` nonlinearities only; the squared
+   reconstruction error would be silently mis-attributed. IG and GradientSHAP are exact for any
+   differentiable scalar.
+4. *Integer snapping was added to Manifold-LIME* (96 of TradeFraud's 271 columns and 31 of
+   DemandForecast's 51 are integer-valued; a promotion flag of 0.37 is not a real day), with a
+   no-rounding variant kept so each realism constraint's effect can be separated.
+5. *The faithfulness check uses two replacement operators, and that was added after seeing the first
+   one's results.* Replacing 5 features with another client's values raised reconstruction error by ~10
+   (mean L is 22.6) **even for a random ranking** — grafting one client's values onto another creates an
+   off-manifold client. A "repair" operator (set the features to the typical value, 0) was added. Both are
+   reported; conclusions are drawn only where they agree. Each has its own bias (below).
+6. *Bugs found by the tests and fixed:* captum's GradientSHAP draws from numpy's *global* RNG, so seeding
+   torch alone did not make it reproducible; and a 3-operand `einsum` made Manifold-LIME ~4× slower than
+   needed (the first run was killed and redone).
+
+**Latency** (median ms for one client, CPU; KernelSHAP from only 1–5 clients so rough):
+
+| Explainer | AE | VAE | TabNet (TradeFraud) | TabNet (Demand) | LSTM |
+|---|---:|---:|---:|---:|---:|
+| IG, zero baseline (50 steps) | 2.6 | 2.9 | 27 | 10 | 15 |
+| **IG, 10 k-means baselines (primary)** | 27 | 29 | 263 | 105 | 151 |
+| GradientSHAP | 1.3 | 1.6 | 13 | 6.5 | 14 |
+| **Manifold-LIME (primary)** | 80 | 84 | 170 | 57 | 367 |
+| vanilla LIME | 30 | 34 | 138 | 59 | 349 |
+| **LRD** | **1.7** | **1.9** | n/a | n/a | n/a |
+| KernelSHAP, 10-row background | 96 | 116 | 1,068 | 558 | 2,375 |
+| KernelSHAP, 100-row background | 476 | 636 | 9,235 | 4,969 | 21,068 |
+
+- **LRD meets its <50 ms target by a wide margin (≈2 ms)** and is roughly 55–60× faster than KernelSHAP
+  with a 10-row background and ≈280–335× faster with 100 rows.
+- **The proposal's ">20 seconds per transaction" for KernelSHAP is only reproduced in the extreme case**
+  (the 1,428-column LSTM, 100-row background: 21 s, one client). On the autoencoders — a 271-input network
+  of ~100k parameters — KernelSHAP takes 0.1–0.6 s. The speed advantage is large but the motivating
+  number depends on model size and background size; the paper should say so rather than quote 20 s generically.
+- The proposal's ≤100 ms system budget is met by single-baseline IG, GradientSHAP, LRD and native TabNet
+  masks on every model; the *primary* IG (k-means) and Manifold-LIME exceed it on TabNet and the LSTM (and
+  Manifold-LIME sits at ~80 ms on the autoencoders).
+
+**Adapted SHAP — how much does the answer depend on the baseline?** (mean weighted-τ between the rankings
+two baselines produce for the same client; 1 = identical)
+
+| | AE | VAE | TabNet (TF) | TabNet (Demand) | LSTM |
+|---|---:|---:|---:|---:|---:|
+| zeros vs k-means | 0.23 | 0.22 | 0.83 | 0.64 | 0.87 |
+| zeros vs raw-mean | −0.04 | −0.01 | 0.82 | 0.70 | 0.79 |
+| zeros vs nearest-neighbour | 0.28 | 0.22 | 0.23 | 0.53 | 0.44 |
+| k-means vs GradientSHAP | 0.45 | 0.52 | 0.80 | 0.70 | 0.84 |
+
+On the autoencoders the explanation is **strongly baseline-dependent** (top-10 overlap 1–25%); on the
+supervised models it is stable across population-level baselines, but the instance-specific
+nearest-neighbour baseline is consistently the outlier (it explains "difference from the closest normal
+client", a different question). This is a result about the problem, not numerical noise: at 400 vs 50 steps
+the autoencoder rankings change by only τ=0.984 (value residual 7.6% → 0.8%). Two cautions: the raw-mean
+baseline is a poor reference — its top-5 features are *less* unusual than average (mean |z| 0.48× the
+all-feature average, versus 1.8–2.9× for every other variant) and its completeness residual is 39% — **we
+recommend not using it**; and **DemandForecast TabNet's IG is only moderately converged** (24% residual at
+50 steps, 8% at 400; ranking τ=0.87 vs 400 steps), because its sparsemax-gated, discretely-driven response is
+hard for IG's quadrature — treat those attributions as approximate.
+
+**Manifold-LIME against vanilla LIME** (same marginal spread; differs in dependence structure, kernel and
+rounding):
+
+| | fidelity R² (manifold / no-round / vanilla) | stability τ over 5 seeds (manifold / no-round / vanilla) | distance of perturbations to nearest real row (manifold / vanilla; real-to-real) |
+|---|---|---|---|
+| AE | 0.84 / 0.78 / 0.77 | 0.77 / 0.50 / 0.79 | 4.81 / 5.46; 3.01 |
+| VAE | 0.85 / 0.88 / 0.77 | 0.78 / 0.48 / 0.79 | same geometry |
+| TabNet (TF) | 0.66 / 0.82 / 0.79 | 0.66 / 0.51 / 0.61 | same geometry |
+| TabNet (Demand) | 0.76 / 0.71 / 0.67 | 0.75 / 0.62 / 0.73 | 2.78 / 2.98; 3.10 |
+| LSTM (1,428 columns) | 0.71 / 0.99 / 1.00 | 0.71 / 0.62 / 0.74 | 26.8 / 27.1; 10.9 |
+
+The honest reading: **a modest plausibility gain, and no consistent stability or fidelity gain.**
+Manifold perturbations sit 3–20% closer to real clients than independent ones (the gap widens with
+perturbation scale), but even at the chosen scale they are *farther* from any real client than real
+clients are from each other in 271 dimensions (4.8 vs 3.0), and in 1,428 dimensions the three modes are
+indistinguishable. Stability: the no-rounding variant is consistently the *least* stable (correlated
+perturbations make the local regression ill-conditioned, so credit is split arbitrarily among correlated
+features); with rounding it matches vanilla in the main diagnostic (0.77 vs 0.79). In a sweep with a smaller
+sample budget (500 perturbations, 12 clients) the manifold version is more stable at small scale or stronger
+ridge (e.g. scale 0.1: 0.85 vs 0.78; ridge 10: 0.78 vs 0.66) — so any stability advantage depends on the
+sample budget and is not a robust property. Integer snapping *hurts* local fit for the piecewise models
+(TabNet R² 0.82 → 0.66; LSTM 0.99 → 0.71), where discrete jumps break local linearity. About a third of
+perturbed entries are clipped to the realistic range in every mode, because many features sit at their
+minimum (a zero count) so half of any perturbation falls below it.
+
+**LRD — what the evidence does and does not show.** Completeness holds (10⁻⁶) and attributions are
+non-negative magnitudes. The λ ablation (autoencoder shown; the VAE is the same within noise; the
+VAE-specific σ-weighting changed nothing material):
+
+| faithfulness check: how much more do top-5 features matter than random-5? (top/random) | donor replacement | zero ("repair") replacement | clients where top-5 matters more than bottom-5 |
+|---|---:|---:|---:|
+| LRD λ=0 (pure latent path) | 1.7 | 3.0 | 82% (100% zero) |
+| LRD λ=0.5 (**pre-declared primary**) | 0.9 | 1.4 | 81% (100% zero) |
+| LRD λ=1 (= the trivial per-feature error) | 0.8 | 1.3 | 71% |
+| IG, k-means (primary Adapted SHAP) | 1.8 | 1.8 | 59% / 74% |
+| Manifold-LIME (primary) | 1.4 | 1.8 | 80% / 94% |
+| vanilla LIME | 1.0 | 1.5 | 74% / 94% |
+| random ranking (control) | 1.1 | 1.1 | 41% / 51% |
+
+Routing through the latent code *does* add something over the trivial per-feature error (λ=0 beats λ=1 on
+both operators), and the **pre-declared primary λ=0.5 sits much closer to the weak end** — the evidence so
+far favours λ=0. We are **not** switching the primary after seeing this: the check is itself biased — zero
+replacement favours any attribution proportional to the input (IG from the origin, LRD, LIME contributions
+are all zero for a feature already at its typical value, so replacing it with zero changes nothing), and
+donor replacement is dominated by disruption. In fact only the direct per-feature error (λ=1) shows a
+positive *repair* (mean error falls when its top features are set to typical values); every
+input-proportional ranking raises error because setting a few large, mutually consistent values to zero
+makes the client incoherent. λ is therefore to be settled in Phase 5, using the synthetic ground-truth test
+(corrupt known features) on data not used here. Ratios of top to *bottom* effect are not quoted: for TabNet
+and the LSTM the bottom effect is exactly zero (sparse attention; constant columns), making them undefined.
+
+**Do the explainers agree?** Placeholder weighted-τ between the three *primary* explainers (this is a
+preview, **not** the CLI): autoencoder/VAE — Adapted SHAP–Manifold-LIME 0.18, Adapted SHAP–LRD 0.27,
+Manifold-LIME–LRD 0.52; TabNet (TradeFraud) — 0.16 between the two explainers, 0.43 / 0.12 against TabNet's
+own attention masks; TabNet (Demand) — 0.41, 0.57, 0.37; LSTM — 0.41 on the 1,428 time×feature cells, 0.34
+after summing over time to the 51 features. The explainers disagree substantially, most in the 271-feature
+problems. That disagreement is exactly what Phase 4 is meant to measure and gate on.
+
+**Sanity check (the roadmap's "do the top features look unusual?").** `show_tri_explainer_case.py` reports,
+for each variant, how unusual its top-5 features are (mean |z| in the preprocessed space; random ≈ 0.70).
+Every variant except the raw-mean baseline scores 1.8–2.9× above average. A worked example: for the
+dispute with the highest reconstruction error all three primary explainers converge on
+`net_trade_amt_l_003d` (a net trade of −15,041, in the bottom 1.5% of normal clients) and on trade-count
+features in the 99th percentile; for a dispute the model barely notices (error 3.4, i.e. typical) they pick
+`cash_dormancyPeriod` (98th percentile) — the model is simply not very anomalous about it, consistent with
+its weak AUC. Note that in the explained sample the autoencoder's mean error is *higher for normal clients
+(23.8) than for disputes (17.6)*: these are faithful explanations of a model whose anomaly signal points the
+wrong way on this data.
+
+**Model-specific observations.** TabNet's sparse attention gives many features an exactly-zero attribution,
+so its explanations are short lists. The LSTM's IG attribution is concentrated on the most recent day: 26%
+of total mass at t-0, 48% in the last three days, 15% across the first fourteen — the 28-day window
+matters, but mostly through the final day, whose features already include the engineered lag and rolling
+statistics.
+
 ---
 
 ## 6. What is deliberately NOT here yet
@@ -347,14 +515,15 @@ This section exists so that nobody — including us — mistakes groundwork for 
 
 | Required by the proposal | Status |
 |---|---|
-| **Adapted SHAP** (DeepSHAP / Integrated Gradients on the autoencoder's reconstruction error, with a study of how the choice of background reference changes the answer) | Not built |
-| **Manifold-LIME** (perturbations constrained by the Mahalanobis covariance so they stay on the real financial data manifold) | Not built |
-| **LRD — Latent Reconstruction Decomposition** (back-projecting reconstruction error through the bottleneck to input features, target < 50 ms) | Not built |
-| **CLI(x)** — per-transaction consensus using **weighted Kendall's τ**, per the proposal's Equation (1) | Not built |
+| **Adapted SHAP** (IG / GradientSHAP on the autoencoder's reconstruction error, with a study of how the baseline changes the answer) | ✅ Built and studied (Phase 3) |
+| **Manifold-LIME** (covariance-shaped perturbations that stay on the data manifold) | ✅ Built and studied (Phase 3) — honest result: modest plausibility gain, no consistent stability/fidelity gain |
+| **LRD — Latent Reconstruction Decomposition** (back-projecting reconstruction error through the bottleneck, target < 50 ms) | ✅ Built (≈2 ms); **provisional** — formulation is ours, awaiting NodeX8's confirmation (Section 8, Q2); λ to be settled in Phase 5 |
+| **VAE** (probabilistic latent space; richer LRD target) | ✅ Built (Phase 2) |
+| **Local / per-instance explanations** | ✅ Built (Phase 1) |
+| **CLI(x)** — per-transaction consensus using **weighted Kendall's τ**, per the proposal's Equation (1) | Not built (a placeholder-τ *preview* exists; it is not the CLI) |
 | **Uncertainty gate** — a calibrated τ threshold that routes low-agreement cases to a human | Not built |
-| **VAE** (probabilistic latent space; richer LRD target) | Not built |
-| **Local / per-instance explanations** | Not built |
-| **Faithfulness, stability and latency benchmarks** | Not built |
+| **Formal faithfulness / stability / adversarial / latency benchmark suite** | Partly: latency, a first faithfulness check and Manifold-LIME stability are done; the synthetic ground-truth test, deletion/insertion curves and adversarial robustness are Phase 5 |
+| **Adapting LRD to TabNet / LSTM** (roadmap stretch goal) | Not attempted — no autoencoder bottleneck; those models get Adapted SHAP + Manifold-LIME |
 | **GNN family** | Blocked — the data has no client-to-client links (see below) |
 
 ### Things that were previously in this repository and have been removed
@@ -440,6 +609,21 @@ Recorded honestly so they are fixed deliberately rather than discovered by a rev
     `shap_global.csv` and friends exist only locally. They are our evidence and should be committed.
 12. **No automated tests.** The proposal requires ≥85% test coverage for the final SDK;
     `src/eval_utils.py` has been exercised against synthetic data by hand but has no pytest suite yet.
+15. **LRD is our formulation, not NodeX8's.** If NodeX8 has a specification it overrides this one. The
+    primary λ=0.5 was fixed in advance but the ablation favours λ=0; settle it in Phase 5 on independent data.
+16. **The Phase 3 faithfulness checks are biased by their replacement operators** (see Section 5), so they
+    support only coarse statements (every explainer beats random; the raw-mean baseline does not). They
+    are not a ranking of the explainers.
+17. **DemandForecast TabNet's Adapted SHAP is only moderately converged** (24% IG completeness residual at
+    50 steps; ranking τ=0.87 against 400 steps).
+18. **Explanations are computed on small samples** (251 TradeFraud clients incl. all 51 unique disputes; 250
+    Demand rows; 120 for the LSTM), KernelSHAP latency from 1–5 clients, and LSTM Manifold-LIME diagnostics
+    on 20 rows without sweeps. Differences between explainers of a few hundredths should not be read as real.
+19. **Perturbations are not truly "on the manifold" in high dimension.** At the chosen scale Manifold-LIME's
+    copies are farther from real clients than real clients are from each other (271-d) and no closer than
+    vanilla's in 1,428-d; Gaussian-plus-rounding is only an approximation of the data's structure.
+20. **The explained models are weak detectors** (autoencoder/VAE AUC ≈ 0.5, error higher for normals than
+    disputes in the sample). The explainers describe what the models do, not what fraud looks like.
 13. **Model numbering skips Model 1 and Model 8** (models are 2–7, then 9 for the VAE), a leftover
     from an earlier numbering scheme — harmless, left as-is rather than renumbering everything.
 14. **DemandForecast OOS is still split by brand (3 held-out brands), not by product.** The
@@ -455,6 +639,8 @@ Recorded honestly so they are fixed deliberately rather than discovered by a rev
 2. **LRD specification** — the proposal describes LRD as NodeX8's proprietary framework but gives
    only a one-line description. Does NodeX8 have an existing written specification or pseudocode we
    should implement, or is designing the precise algorithm part of our research contribution?
+   (**Update:** a concrete formulation is now implemented in `src/explainers/lrd.py` with one correction to the
+   roadmap's Step D, explained in Section 5. It is provisional until NodeX8 confirms or replaces it.)
 3. **GNN family** — the proposal asks for a graph model over account networks (mule accounts, fraud
    rings), but the TradeFraud data has one independent row per client and no columns linking clients
    to each other. There is nothing to build a graph from. Should we defer this, use a public graph
@@ -475,7 +661,7 @@ depends on clean inputs.
 | **0. Fix and freeze** | ✅ **Done** (Section 7). Pinned dependencies; deduplicated disputes everywhere; moved TabNet's early stopping off the evaluation set; fixed one threshold per model; added bootstrap confidence intervals; fixed the LIME substring bug; fixed the DemandForecast OOT months and retrained everything on the corrected splits. |
 | **1. Finish baseline explainability** | ✅ **Done** (Section 5). Local (per-instance) SHAP and LIME for high-risk/high-value, borderline and misclassified/high-error cases; DemandForecast cohort level (Brand/DayType/Decile); per-instance placeholder τ between SHAP and LIME; `feature_hierarchy.csv` for both datasets. |
 | **2. Advanced models** | ✅ **Done** (Section 5). Autoencoder rebuilt with signed-log1p preprocessing and a clean deterministic bottleneck (honest result: reconstruction fidelity improved 3×, AUC did not); VAE built with KL annealing (no posterior collapse); DemandForecast LSTM rebuilt with real 28-day sequences (sanity-checked). |
-| **3. The Tri-Explainer** | Adapted SHAP (with background-sensitivity study), Manifold-LIME, LRD — plus latency measurement and a synthetic ground-truth test. |
+| **3. The Tri-Explainer** | ✅ **Done** (Section 5). Adapted SHAP, Manifold-LIME and LRD implemented, tested (33 tests) and put through identical studies on five models: latency, baseline sensitivity, Manifold-LIME diagnostics, a first faithfulness check, and an agreement preview. Several honest negative/neutral results (Manifold-LIME's benefit is modest; LRD's λ unsettled; KernelSHAP's ">20 s" only reproduced in the extreme case). |
 | **4. CLI** | Weighted Kendall's τ, per-instance CLI per the proposal's Equation (1), aggregation by decile/segment/time, and calibration of the uncertainty gate. |
 | **5. Benchmarks** | Faithfulness, monotonicity, stability, latency, memory. |
 | **6. SDK** | `claris_deep_xai`, PEP-8, ≥85% test coverage. |

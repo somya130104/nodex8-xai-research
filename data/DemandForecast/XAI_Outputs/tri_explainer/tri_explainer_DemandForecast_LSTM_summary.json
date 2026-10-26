@@ -1,0 +1,516 @@
+{
+  "scalar_mean_by_group": {
+    "all": 5.062237739562988,
+    "negatives": 5.062237739562988
+  },
+  "model": "DemandForecast_LSTM",
+  "n_instances": 120,
+  "n_columns": 1428,
+  "n_positive": 0,
+  "primary_variants": {
+    "AdaptedSHAP": "ig_kmeans",
+    "ManifoldLIME": "lime_manifold",
+    "LRD": "lrd_lam0.5"
+  },
+  "rawmean_baseline_note": "standardised-space median (see TabNet note); window flattened to 28 x 51 columns",
+  "ig_completeness": {
+    "ig_zeros": {
+      "mean_abs_residual": 0.001317433314397931,
+      "mean_abs_residual_over_mean_scalar": 0.00026024720864370465
+    },
+    "ig_rawmean": {
+      "mean_abs_residual": 0.0014359860215336084,
+      "mean_abs_residual_over_mean_scalar": 0.0002836662461049855
+    },
+    "ig_kmeans": {
+      "mean_abs_residual": 0.0011361901415511966,
+      "mean_abs_residual_over_mean_scalar": 0.00022444424394052476
+    },
+    "ig_nn": {
+      "mean_abs_residual": 0.00041633768705651164,
+      "mean_abs_residual_over_mean_scalar": 8.224380144383758e-05
+    }
+  },
+  "baseline_geometry": {
+    "max_abs_mean_of_reference": 0.10378976166248322,
+    "l2_zeros_to_rawmean": 16.549518585205078
+  },
+  "ledoit_wolf_shrinkage": 0.0008633505479667455,
+  "background_sensitivity": [
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "ig_rawmean",
+      "mean_tau_all": 0.792,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.792,
+      "mean_top10_jaccard": 0.5187
+    },
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "ig_kmeans",
+      "mean_tau_all": 0.8653,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.8653,
+      "mean_top10_jaccard": 0.6575
+    },
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "ig_nn",
+      "mean_tau_all": 0.4346,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.4346,
+      "mean_top10_jaccard": 0.1665
+    },
+    {
+      "variant_a": "ig_zeros",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.8227,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.8227,
+      "mean_top10_jaccard": 0.4615
+    },
+    {
+      "variant_a": "ig_rawmean",
+      "variant_b": "ig_kmeans",
+      "mean_tau_all": 0.7572,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.7572,
+      "mean_top10_jaccard": 0.4455
+    },
+    {
+      "variant_a": "ig_rawmean",
+      "variant_b": "ig_nn",
+      "mean_tau_all": 0.4698,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.4698,
+      "mean_top10_jaccard": 0.1823
+    },
+    {
+      "variant_a": "ig_rawmean",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.7058,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.7058,
+      "mean_top10_jaccard": 0.3607
+    },
+    {
+      "variant_a": "ig_kmeans",
+      "variant_b": "ig_nn",
+      "mean_tau_all": 0.4351,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.4351,
+      "mean_top10_jaccard": 0.1617
+    },
+    {
+      "variant_a": "ig_kmeans",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.8435,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.8435,
+      "mean_top10_jaccard": 0.5095
+    },
+    {
+      "variant_a": "ig_nn",
+      "variant_b": "gradient_shap",
+      "mean_tau_all": 0.4246,
+      "mean_tau_positives": NaN,
+      "mean_tau_negatives": 0.4246,
+      "mean_top10_jaccard": 0.144
+    }
+  ],
+  "manifold_lime_diagnostics": [
+    {
+      "metric": "local_fidelity_r2_mean",
+      "mode": "manifold",
+      "group": "all",
+      "value": 0.7055
+    },
+    {
+      "metric": "local_fidelity_r2_median",
+      "mode": "manifold",
+      "group": "all",
+      "value": 0.73911
+    },
+    {
+      "metric": "local_fidelity_r2_mean",
+      "mode": "manifold_noround",
+      "group": "all",
+      "value": 0.98516
+    },
+    {
+      "metric": "local_fidelity_r2_median",
+      "mode": "manifold_noround",
+      "group": "all",
+      "value": 0.98857
+    },
+    {
+      "metric": "local_fidelity_r2_mean",
+      "mode": "vanilla",
+      "group": "all",
+      "value": 0.99751
+    },
+    {
+      "metric": "local_fidelity_r2_median",
+      "mode": "vanilla",
+      "group": "all",
+      "value": 0.99785
+    },
+    {
+      "metric": "mean_nn_distance_of_perturbations_to_real_rows",
+      "mode": "manifold",
+      "group": "diag_subset",
+      "value": 26.80349
+    },
+    {
+      "metric": "frac_perturbed_entries_clipped_to_range",
+      "mode": "manifold",
+      "group": "diag_subset",
+      "value": 0.32294
+    },
+    {
+      "metric": "mean_nn_distance_of_perturbations_to_real_rows",
+      "mode": "manifold_noround",
+      "group": "diag_subset",
+      "value": 26.67544
+    },
+    {
+      "metric": "frac_perturbed_entries_clipped_to_range",
+      "mode": "manifold_noround",
+      "group": "diag_subset",
+      "value": 0.32294
+    },
+    {
+      "metric": "mean_nn_distance_of_perturbations_to_real_rows",
+      "mode": "vanilla",
+      "group": "diag_subset",
+      "value": 27.05738
+    },
+    {
+      "metric": "frac_perturbed_entries_clipped_to_range",
+      "mode": "vanilla",
+      "group": "diag_subset",
+      "value": 0.32275
+    },
+    {
+      "metric": "mean_nn_distance_of_REAL_rows_to_other_real_rows",
+      "mode": "reference",
+      "group": "reference",
+      "value": 10.87018
+    },
+    {
+      "metric": "stability_mean_pairwise_tau_over_4_seeds",
+      "mode": "manifold",
+      "group": "diag_subset",
+      "value": 0.70933
+    },
+    {
+      "metric": "stability_mean_pairwise_tau_over_4_seeds",
+      "mode": "manifold_noround",
+      "group": "diag_subset",
+      "value": 0.61967
+    },
+    {
+      "metric": "stability_mean_pairwise_tau_over_4_seeds",
+      "mode": "vanilla",
+      "group": "diag_subset",
+      "value": 0.73711
+    }
+  ],
+  "faithfulness_all": {
+    "donor": [
+      {
+        "variant": "ig_zeros",
+        "mean_top_effect": 1.6452,
+        "mean_bottom_effect": 0.0013,
+        "top_over_bottom_ratio": 1264.6976,
+        "top_over_random_ratio": 16.9416,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 1.0537
+      },
+      {
+        "variant": "ig_rawmean",
+        "mean_top_effect": 1.7355,
+        "mean_bottom_effect": 0.031,
+        "top_over_bottom_ratio": 56.0581,
+        "top_over_random_ratio": 17.8713,
+        "frac_instances_top_gt_bottom": 0.9667,
+        "mean_top_reduction": 1.2099
+      },
+      {
+        "variant": "ig_kmeans",
+        "mean_top_effect": 1.6394,
+        "mean_bottom_effect": 0.0,
+        "top_over_bottom_ratio": 1639407419392.0,
+        "top_over_random_ratio": 16.8818,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 0.9296
+      },
+      {
+        "variant": "ig_nn",
+        "mean_top_effect": 1.6529,
+        "mean_bottom_effect": 0.0602,
+        "top_over_bottom_ratio": 27.4615,
+        "top_over_random_ratio": 17.0207,
+        "frac_instances_top_gt_bottom": 0.975,
+        "mean_top_reduction": 0.5702
+      },
+      {
+        "variant": "gradient_shap",
+        "mean_top_effect": 1.5712,
+        "mean_bottom_effect": 0.0031,
+        "top_over_bottom_ratio": 499.6469,
+        "top_over_random_ratio": 16.179,
+        "frac_instances_top_gt_bottom": 0.9917,
+        "mean_top_reduction": 0.8895
+      },
+      {
+        "variant": "lime_manifold",
+        "mean_top_effect": 0.7594,
+        "mean_bottom_effect": 0.0124,
+        "top_over_bottom_ratio": 61.4223,
+        "top_over_random_ratio": 7.8196,
+        "frac_instances_top_gt_bottom": 0.9583,
+        "mean_top_reduction": 0.5562
+      },
+      {
+        "variant": "lime_manifold_noround",
+        "mean_top_effect": 1.4376,
+        "mean_bottom_effect": 0.0013,
+        "top_over_bottom_ratio": 1105.0951,
+        "top_over_random_ratio": 14.8036,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 0.8574
+      },
+      {
+        "variant": "lime_vanilla",
+        "mean_top_effect": 1.5567,
+        "mean_bottom_effect": 0.0013,
+        "top_over_bottom_ratio": 1196.6614,
+        "top_over_random_ratio": 16.0302,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 0.858
+      },
+      {
+        "variant": "RANDOM_ranking",
+        "mean_top_effect": 0.0792,
+        "mean_bottom_effect": 0.1435,
+        "top_over_bottom_ratio": 0.5522,
+        "top_over_random_ratio": 0.8158,
+        "frac_instances_top_gt_bottom": 0.5417,
+        "mean_top_reduction": -0.0114
+      }
+    ],
+    "zero": [
+      {
+        "variant": "ig_zeros",
+        "mean_top_effect": 1.5586,
+        "mean_bottom_effect": 0.0,
+        "top_over_bottom_ratio": 1558646489088.0,
+        "top_over_random_ratio": 23.261,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 1.2783
+      },
+      {
+        "variant": "ig_rawmean",
+        "mean_top_effect": 1.575,
+        "mean_bottom_effect": 0.0304,
+        "top_over_bottom_ratio": 51.7684,
+        "top_over_random_ratio": 23.5049,
+        "frac_instances_top_gt_bottom": 0.95,
+        "mean_top_reduction": 1.4401
+      },
+      {
+        "variant": "ig_kmeans",
+        "mean_top_effect": 1.5082,
+        "mean_bottom_effect": 0.0,
+        "top_over_bottom_ratio": 1508201332736.0,
+        "top_over_random_ratio": 22.5082,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 1.1628
+      },
+      {
+        "variant": "ig_nn",
+        "mean_top_effect": 1.1894,
+        "mean_bottom_effect": 0.0473,
+        "top_over_bottom_ratio": 25.1547,
+        "top_over_random_ratio": 17.7508,
+        "frac_instances_top_gt_bottom": 0.9583,
+        "mean_top_reduction": 0.9531
+      },
+      {
+        "variant": "gradient_shap",
+        "mean_top_effect": 1.4206,
+        "mean_bottom_effect": 0.003,
+        "top_over_bottom_ratio": 474.726,
+        "top_over_random_ratio": 21.2002,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 1.0093
+      },
+      {
+        "variant": "lime_manifold",
+        "mean_top_effect": 0.819,
+        "mean_bottom_effect": 0.0175,
+        "top_over_bottom_ratio": 46.7982,
+        "top_over_random_ratio": 12.2232,
+        "frac_instances_top_gt_bottom": 0.9667,
+        "mean_top_reduction": 0.6598
+      },
+      {
+        "variant": "lime_manifold_noround",
+        "mean_top_effect": 1.3156,
+        "mean_bottom_effect": 0.0,
+        "top_over_bottom_ratio": 1315569139712.0,
+        "top_over_random_ratio": 19.6333,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 1.1168
+      },
+      {
+        "variant": "lime_vanilla",
+        "mean_top_effect": 1.4912,
+        "mean_bottom_effect": 0.0,
+        "top_over_bottom_ratio": 1491224625152.0,
+        "top_over_random_ratio": 22.2548,
+        "frac_instances_top_gt_bottom": 1.0,
+        "mean_top_reduction": 1.1277
+      },
+      {
+        "variant": "RANDOM_ranking",
+        "mean_top_effect": 0.0678,
+        "mean_bottom_effect": 0.1166,
+        "top_over_bottom_ratio": 0.5814,
+        "top_over_random_ratio": 1.0119,
+        "frac_instances_top_gt_bottom": 0.4917,
+        "mean_top_reduction": 0.0107
+      }
+    ]
+  },
+  "agreement_preview_placeholder_tau": {
+    "AdaptedSHAP_vs_ManifoldLIME__all": 0.41346890378864304,
+    "AdaptedSHAP_vs_ManifoldLIME__negatives": 0.41346890378864304
+  },
+  "latency_ms": [
+    {
+      "explainer": "ig_zeros (50 steps)",
+      "n": 30,
+      "p50_ms": 15.035,
+      "p95_ms": 15.77,
+      "mean_ms": 15.056,
+      "max_ms": 15.953
+    },
+    {
+      "explainer": "ig_kmeans (10 baselines x 50 steps)",
+      "n": 30,
+      "p50_ms": 151.446,
+      "p95_ms": 158.295,
+      "mean_ms": 152.593,
+      "max_ms": 177.448
+    },
+    {
+      "explainer": "gradient_shap (100 baselines, 50 samples)",
+      "n": 30,
+      "p50_ms": 14.208,
+      "p95_ms": 15.343,
+      "mean_ms": 14.137,
+      "max_ms": 15.789
+    },
+    {
+      "explainer": "manifold_lime (1500 samples)",
+      "n": 30,
+      "p50_ms": 367.191,
+      "p95_ms": 391.352,
+      "mean_ms": 371.64,
+      "max_ms": 535.354
+    },
+    {
+      "explainer": "vanilla_lime (1500 samples)",
+      "n": 30,
+      "p50_ms": 349.205,
+      "p95_ms": 381.825,
+      "mean_ms": 348.312,
+      "max_ms": 419.122
+    },
+    {
+      "explainer": "KernelSHAP reference (10 k-means background, default nsamples)",
+      "n": 2,
+      "p50_ms": 2375.317,
+      "p95_ms": 2436.048,
+      "mean_ms": 2375.317,
+      "max_ms": 2436.048
+    },
+    {
+      "explainer": "KernelSHAP reference (100-row background, default nsamples)",
+      "n": 1,
+      "p50_ms": 21067.65,
+      "p95_ms": 21067.65,
+      "mean_ms": 21067.65,
+      "max_ms": 21067.65
+    }
+  ],
+  "runtime_seconds": 318.2,
+  "agreement_preview_feature_level_placeholder_tau": {
+    "AdaptedSHAP_vs_ManifoldLIME__feature_level": 0.34136469361801275
+  },
+  "mean_abs_attribution_by_timestep_t-27_to_t-0": {
+    "ig_kmeans": [
+      0.18237000703811646,
+      0.18285000324249268,
+      0.1722699999809265,
+      0.17959000170230865,
+      0.18803000450134277,
+      0.1991100013256073,
+      0.2196200042963028,
+      0.23385000228881836,
+      0.24185000360012054,
+      0.2626200020313263,
+      0.2809700071811676,
+      0.3018699884414673,
+      0.3167000114917755,
+      0.3544900119304657,
+      0.3697499930858612,
+      0.39594000577926636,
+      0.43220001459121704,
+      0.48844999074935913,
+      0.5343199968338013,
+      0.611240029335022,
+      0.7181000113487244,
+      0.8294900059700012,
+      0.9855200052261353,
+      1.2257399559020996,
+      1.5093599557876587,
+      1.9647899866104126,
+      2.9048099517822266,
+      5.772630214691162
+    ],
+    "lime_manifold": [
+      0.16904,
+      0.16397,
+      0.15712,
+      0.15173,
+      0.15202,
+      0.14924,
+      0.14838,
+      0.15151,
+      0.14652,
+      0.1451,
+      0.15091,
+      0.15023,
+      0.14705,
+      0.15794,
+      0.14805,
+      0.15019,
+      0.15023,
+      0.15071,
+      0.15132,
+      0.15318,
+      0.16132,
+      0.16529,
+      0.16927,
+      0.1743,
+      0.18334,
+      0.21407,
+      0.2587,
+      0.2942
+    ]
+  },
+  "clamped_prediction_fraction": 0.0
+}

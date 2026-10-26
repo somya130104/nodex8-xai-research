@@ -252,6 +252,19 @@ preprocessing scripts unless you intend to change the feature engineering.
 |---|---|
 | `eval_utils.py` | The Phase 0 fixes, factored out once instead of copy-pasted into six scripts: `dedupe_rows()` drops the 10×-duplicated dispute rows; `select_f1_threshold()` / `metrics_at_threshold()` implement "pick a threshold on validation only, reuse it everywhere"; `bootstrap_auc_ci()` / `bootstrap_auc_pr_ci()` add confidence intervals. Every TradeFraud script imports from here via `sys.path.append("/Users/somyabhadada/nodex8"); from src.eval_utils import ...`. |
 
+**Phase 3 — the Tri-Explainer library, `src/explainers/`**
+
+| File | What it does |
+|---|---|
+| `adapted_shap.py` | Explainer 1 — Integrated Gradients / GradientSHAP (via `captum`) on a scalar such as reconstruction error |
+| `manifold_lime.py` | Explainer 2 — LIME whose perturbations follow the data's covariance (Ledoit-Wolf), with range-clipping and integer snapping |
+| `lrd.py` | Explainer 3 — Latent Reconstruction Decomposition, for autoencoder-family models |
+| `baselines.py`, `snapping.py` | The four reference inputs for Adapted SHAP; integer-snapping for Manifold-LIME |
+| `validation.py` | Feature-replacement faithfulness check, plausibility distance, agreement preview |
+| `studies.py` | One driver that puts *every* model through identical studies (attributions, background sensitivity, LIME diagnostics, faithfulness, latency) |
+
+`src/autoencoder_models.py` holds the importable AE/VAE classes; `tests/test_explainers.py` is the pytest suite for all of the above (`python3 -m pytest tests -q`).
+
 ### TradeFraud — `data/TradeFraud/scripts/`
 
 **Data preparation** (already run; only re-run if changing features)
@@ -283,6 +296,8 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `run_baseline_shap.py` | TreeSHAP / LinearSHAP at global, segment and decile level |
 | `run_local_explanations.py` | Local (per-instance) SHAP + LIME on 15 representative cases per model — the adverse-action-notice level |
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` from `Data/variable_dictionary.csv` |
+| `run_tri_explainer_ae_vae.py` | Phase 3: Adapted SHAP + Manifold-LIME + LRD on the autoencoder and VAE (251 clients) |
+| `run_tri_explainer_tabnet.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet (LRD not applicable), plus TabNet's native masks |
 | `run_baseline_lime.py` | The same three levels using LIME |
 | `extract_tabnet_masks.py` | Pulls out TabNet's *built-in* attention masks. **Note:** this is a signal the model gives for free, not one of the three explainers the research requires |
 | `plot_roc_all.py`, `plot_hosmer_lemeshow.py` | Charts. See ARCHITECTURE.md limitation 9 before interpreting the calibration chart |
@@ -299,6 +314,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `run_local_explanations.py` | Local (per-instance) SHAP + LIME on 15 representative cases per model |
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` (hand-built groups — no variable dictionary exists for this dataset) |
 | `cohort_utils.py` | Shared `assign_day_type()` used by both the SHAP and LIME scripts |
+| `run_tri_explainer_tabnet_lstm.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet and the 28-day LSTM |
 | `extract_tabnet_masks.py` | TabNet's native masks |
 
 ### SalesForecasting — reference only
