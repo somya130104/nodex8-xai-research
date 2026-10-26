@@ -13,9 +13,31 @@ Outputs:     Performance scorecard, ROC curve, HL calibration chart,
 Phase 0 fixes applied (see ARCHITECTURE.md Section 9): duplicate dispute rows
 are dropped before training or evaluation; the decision threshold is chosen
 once on Validation OOS and reused unchanged everywhere else; AUC-ROC is
-reported with a bootstrap 95% confidence interval. Note: this model's own
+reported with a bootstrap 95% confidence interval. This model's own
 early-stopping split was already drawn strictly from normal training rows
 (never from Validation OOS), so no leakage fix was needed there.
+
+Phase 2.1 fixes applied (see ARCHITECTURE.md Section 7 item 9 / ROADMAP.md
+Phase 2.1):
+  1. Preprocessing: heavy-tailed amount/count columns (221 of 271 had
+     |skew| > 2 on normal rows) are now signed-log1p-transformed before
+     scaling, and scaled values are clipped to [-5, 5] — see
+     src/autoencoder_preprocessing.py. Previously, a handful of large-valued
+     raw columns dominated the mean-squared reconstruction error, which is
+     very likely why the old AUC sat at ~0.53.
+  2. Architecture: the bottleneck layer is now a plain nn.Linear with no
+     BatchNorm/Dropout/activation on it — Phase 3's LRD method needs a
+     well-defined, deterministic latent vector z to back-project a Jacobian
+     through; Dropout on the bottleneck would make z different on every
+     forward pass and break that.
+  3. encode(x) and decode(z) are now exposed as separate callable methods
+     (not just a combined forward()), again for Phase 3's LRD.
+
+Honest framing (also in ARCHITECTURE.md): this model's job in this research
+is to be explained, not to maximise fraud-catching AUC. An explainer is
+judged on whether it faithfully describes what the model actually did, not
+on whether the model is a good fraud detector. Whatever AUC this version
+achieves is reported as-is, with no target to hit.
 """
 import os, sys, json, pickle, warnings, time
 import numpy as np
@@ -24,7 +46,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.stats import chi2
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import average_precision_score, roc_curve, roc_auc_score
 import torch
 import torch.nn as nn
@@ -34,6 +55,7 @@ sys.path.append("/Users/somyabhadada/nodex8")
 from src.eval_utils import (
     dedupe_rows, select_f1_threshold, metrics_at_threshold, bootstrap_auc_ci,
 )
+from src.autoencoder_preprocessing import AutoencoderPreprocessor
 
 warnings.filterwarnings("ignore")
 torch.manual_seed(42)
@@ -52,7 +74,7 @@ EVAL_SETS = [
     ("oot_202511.csv",   "OOT Nov 2025"),
     ("oot_202512.csv",   "OOT Dec 2025"),
 ]
-HIDDEN  = [128, 64, 32]    # Encoder dims; decoder mirrors
+HIDDEN  = [128, 64, 32]    # Encoder dims; decoder mirrors. 32 is the bottleneck.
 EPOCHS  = 60
 BATCH   = 512
 LR      = 1e-3
@@ -62,25 +84,41 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ── Autoencoder Model ─────────────────────────────────────────────────
 class Autoencoder(nn.Module):
+    """
+    encode(x) -> z: all layers except the last get BatchNorm+ReLU+Dropout;
+    the LAST encoder layer (the bottleneck, z) is a plain nn.Linear with no
+    activation and no regularisation, so z is a clean, deterministic,
+    differentiable function of x — required for Phase 3's LRD method, which
+    back-projects a Jacobian through exactly this layer.
+
+    decode(z) -> x_hat: mirrors the encoder in reverse.
+    """
     def __init__(self, input_dim, hidden_dims):
         super().__init__()
-        # Encoder
         enc = []
         prev = input_dim
-        for h in hidden_dims:
+        for h in hidden_dims[:-1]:
             enc += [nn.Linear(prev, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(0.2)]
             prev = h
+        enc.append(nn.Linear(prev, hidden_dims[-1]))  # bottleneck: plain Linear only
         self.encoder = nn.Sequential(*enc)
-        # Decoder (mirrors encoder, skip bottleneck layer itself)
+
         dec = []
+        prev = hidden_dims[-1]
         for h in reversed(hidden_dims[:-1]):
             dec += [nn.Linear(prev, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(0.2)]
             prev = h
         dec.append(nn.Linear(prev, input_dim))
         self.decoder = nn.Sequential(*dec)
 
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, z):
+        return self.decoder(z)
+
     def forward(self, x):
-        return self.decoder(self.encoder(x))
+        return self.decode(self.encode(x))
 
 # ── Helpers ───────────────────────────────────────────────────────────
 def load_features(fname, feat_cols=None):
@@ -91,15 +129,15 @@ def load_features(fname, feat_cols=None):
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
     df = dedupe_rows(df, feat_cols)
-    X = df[feat_cols].fillna(0).values.astype(np.float32)
+    X = df[feat_cols].fillna(0)
     y = df["target"].values
     return X, y, feat_cols
 
-def get_recon_error(model, X_scaled_tensor):
+def get_recon_error(model, X_tensor):
     model.eval()
     with torch.no_grad():
-        recon = model(X_scaled_tensor)
-        errors = torch.mean((X_scaled_tensor - recon) ** 2, dim=1).numpy()
+        recon = model(X_tensor)
+        errors = torch.mean((X_tensor - recon) ** 2, dim=1).numpy()
     return errors
 
 def normalize_to_prob(errors, ref_min, ref_max):
@@ -162,11 +200,14 @@ print(f"  Dispute (D) rows  : {(y_train_all==1).sum():,}")
 print(f"  Feature count     : {X_normal.shape[1]}")
 
 # ─────────────────────────────────────────────────────────────────────
-# STEP 2 — Normalise features (fit on normal train only)
+# STEP 2 — Preprocess: signed-log1p skewed columns, scale, clip
+#          (fit on normal train only — see src/autoencoder_preprocessing.py)
 # ─────────────────────────────────────────────────────────────────────
-print("\nStep 2: Fitting StandardScaler on normal train data...")
-scaler = StandardScaler()
-X_normal_scaled = scaler.fit_transform(X_normal).astype(np.float32)
+print("\nStep 2: Fitting AutoencoderPreprocessor (signed-log1p + scale + clip) on normal train data...")
+preprocessor = AutoencoderPreprocessor(skew_threshold=2.0, clip_value=5.0).fit(X_normal)
+X_normal_scaled = preprocessor.transform(X_normal)
+print(f"  {len(preprocessor.log_cols)} / {len(feat_cols)} features were signed-log1p-transformed "
+      f"(|skew| > {preprocessor.skew_threshold} on normal rows)")
 
 # ─────────────────────────────────────────────────────────────────────
 # STEP 3 — Build & train Autoencoder
@@ -244,7 +285,7 @@ plt.close()
 #          Use to set reference min/max for pseudo-probability scaling
 # ─────────────────────────────────────────────────────────────────────
 print("\nStep 4: Computing reference reconstruction error range...")
-X_train_scaled = scaler.transform(X_train_all).astype(np.float32)
+X_train_scaled = preprocessor.transform(X_train_all)
 train_errors = get_recon_error(model, torch.tensor(X_train_scaled))
 ref_min = np.percentile(train_errors[y_train_all == 0], 1)
 ref_max = np.percentile(train_errors, 99)
@@ -262,7 +303,7 @@ print("\nStep 5: Evaluating on all datasets...")
 # Choose ONE decision threshold on Validation OOS, then reuse it unchanged on
 # every other split — see module docstring.
 X_val_raw, y_val, _ = load_features("val_oos.csv", feat_cols)
-X_val_sc = scaler.transform(X_val_raw).astype(np.float32)
+X_val_sc = preprocessor.transform(X_val_raw)
 val_errors = get_recon_error(model, torch.tensor(X_val_sc))
 val_proba  = normalize_to_prob(val_errors, ref_min, ref_max)
 FIXED_THRESHOLD = select_f1_threshold(y_val, val_proba)
@@ -272,7 +313,7 @@ results, scores_dict, y_dict = [], {}, {}
 
 for fname, label in EVAL_SETS:
     X_raw, y, _ = load_features(fname, feat_cols)
-    X_sc = scaler.transform(X_raw).astype(np.float32)
+    X_sc = preprocessor.transform(X_raw)
     errors = get_recon_error(model, torch.tensor(X_sc))
     proba  = normalize_to_prob(errors, ref_min, ref_max)
 
@@ -294,8 +335,11 @@ pd.DataFrame(results).to_csv(os.path.join(OUTPUT_DIR, "performance_scorecard.csv
 # ─────────────────────────────────────────────────────────────────────
 # STEP 6 — Feature Importance: per-feature reconstruction error gap
 #          (Dispute MSE - Normal MSE per feature, on train data)
+#          This is a simple, label-derived, GLOBAL diagnostic only — it is
+#          NOT a per-instance explanation and is NOT one of the proposal's
+#          Tri-Explainer methods (those are built in Phase 3).
 # ─────────────────────────────────────────────────────────────────────
-print("\nStep 6: Computing per-feature reconstruction importance...")
+print("\nStep 6: Computing per-feature reconstruction importance (diagnostic only)...")
 model.eval()
 with torch.no_grad():
     X_t = torch.tensor(X_train_scaled)
@@ -347,8 +391,12 @@ plt.close()
 
 # ─────────────────────────────────────────────────────────────────────
 # STEP 8 — Hosmer-Lemeshow
+#          (Caveat, see ARCHITECTURE.md limitation 10: this model's
+#          "probability" is a min-max-scaled reconstruction error, not a
+#          real probability, so a calibration test on it is not meaningful.
+#          Kept only for visual/diagnostic continuity with the other models.)
 # ─────────────────────────────────────────────────────────────────────
-print("\nStep 8: Hosmer-Lemeshow calibration test...")
+print("\nStep 8: Hosmer-Lemeshow calibration test (diagnostic only — see caveat above)...")
 fig, axes = plt.subplots(3, 2, figsize=(15, 13))
 axes = axes.flatten()
 all_hl, hl_summary = [], []
@@ -383,16 +431,18 @@ print("\nHosmer-Lemeshow Summary:")
 print(pd.DataFrame(hl_summary).to_string(index=False))
 
 # ─────────────────────────────────────────────────────────────────────
-# STEP 9 — Save model & config
+# STEP 9 — Save model, preprocessor & config
 # ─────────────────────────────────────────────────────────────────────
 torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, "model4_ae_state.pt"))
-with open(os.path.join(OUTPUT_DIR, "scaler.pkl"), "wb") as f:
-    pickle.dump(scaler, f)
-config = {"architecture": f"AE {input_dim}→{HIDDEN}→{input_dim}",
+with open(os.path.join(OUTPUT_DIR, "preprocessor.pkl"), "wb") as f:
+    pickle.dump(preprocessor, f)
+config = {"architecture": f"AE {input_dim}->{HIDDEN}->{input_dim} "
+                           "(bottleneck is a plain Linear layer, no BatchNorm/Dropout)",
           "hidden_dims":  HIDDEN, "epochs": EPOCHS, "batch_size": BATCH,
           "learning_rate": LR, "early_stopping_patience": PATIENCE,
           "best_val_mse": round(best_val_loss, 6),
           "n_features":   len(feat_cols),
+          "preprocessing": preprocessor.summary(),
           "training_note": "Trained ONLY on non-dispute (N) rows from train.csv",
           "normal_train_rows": int((y_train_all==0).sum()),
           "dispute_train_rows": int((y_train_all==1).sum())}

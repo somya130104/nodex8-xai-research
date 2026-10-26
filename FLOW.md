@@ -274,12 +274,15 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `train_model5_lightgbm.py` | LightGBM |
 | `train_model6_logreg.py` | Logistic Regression, elastic-net |
 | `train_model7_tabnet.py` | TabNet (attention network for tables) |
+| `train_model9_vae.py` | Variational Autoencoder — the richer sibling of Model 4 (no Model 8; see FLOW.md §8) |
 
 **Explainability and charts**
 
 | File | What it does |
 |---|---|
 | `run_baseline_shap.py` | TreeSHAP / LinearSHAP at global, segment and decile level |
+| `run_local_explanations.py` | Local (per-instance) SHAP + LIME on 15 representative cases per model — the adverse-action-notice level |
+| `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` from `Data/variable_dictionary.csv` |
 | `run_baseline_lime.py` | The same three levels using LIME |
 | `extract_tabnet_masks.py` | Pulls out TabNet's *built-in* attention masks. **Note:** this is a signal the model gives for free, not one of the three explainers the research requires |
 | `plot_roc_all.py`, `plot_hosmer_lemeshow.py` | Charts. See ARCHITECTURE.md limitation 9 before interpreting the calibration chart |
@@ -291,8 +294,11 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `create_samples.py` | Builds dev / oos / three OOT months from `features.csv` |
 | `train_xgboost.py` | XGBoost with Tweedie loss (suited to the many zero-sales days) |
 | `train_rf.py`, `train_lightgbm.py`, `train_ols.py` | The other three baselines |
-| `train_tabnet.py`, `train_lstm.py` | The deep models |
-| `run_baseline_shap.py`, `run_baseline_lime.py` | SHAP and LIME |
+| `train_tabnet.py`, `train_lstm.py` | The deep models — `train_lstm.py` builds real 28-day sequences (Phase 2), using `features.csv` directly for lookback history |
+| `run_baseline_shap.py`, `run_baseline_lime.py` | SHAP and LIME, now including cohort output (Brand/DayType/Decile) via `cohort_utils.py` |
+| `run_local_explanations.py` | Local (per-instance) SHAP + LIME on 15 representative cases per model |
+| `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` (hand-built groups — no variable dictionary exists for this dataset) |
+| `cohort_utils.py` | Shared `assign_day_type()` used by both the SHAP and LIME scripts |
 | `extract_tabnet_masks.py` | TabNet's native masks |
 
 ### SalesForecasting — reference only
@@ -311,7 +317,8 @@ it. Worth studying as the template we are copying:
 
 ## 8. Things that will confuse you (so they do not)
 
-1. **Models are numbered 2–7. There is no Model 1.** Left over from an earlier numbering scheme.
+1. **Models are numbered 2–7, then 9. There is no Model 1 or Model 8.** Left over from an earlier
+   numbering scheme; harmless, not worth renumbering everything to fix.
 2. **`tabnet_model.zip.zip`** — a genuine double extension caused by a save bug. The loading code
    has a fallback for it. Harmless, on the tidy-up list.
 3. **Disputes look 10× more common than they are — and every script now fixes this itself.** In the
@@ -327,9 +334,10 @@ it. Worth studying as the template we are copying:
 5. **A model's threshold is fixed once, on Validation OOS, and reused everywhere.** You will see one
    `Threshold_Used` value repeated down the whole `performance_scorecard.csv`, including on OOT
    months. That is intentional — see ARCHITECTURE.md §7, item 5.
-6. **The DemandForecast file named `train_lstm.py` is not really a sequence model.** It feeds
-   sequences of length 1, so it behaves as a plain feed-forward network. Replacing it with a true
-   28-day sequence model is a Phase 2 task.
+6. **`train_lstm.py` now builds real 28-day sequences** (fixed in Phase 2 — it used to feed
+   sequences of length 1, making it a plain feed-forward network in disguise). It needs the full
+   `features.csv`, not just the split files, because a sequence near the start of an OOT month needs
+   history from before that month (which lives in `dev.csv` or `oos.csv` for that product).
 7. **`Dispute` is the strings `"D"` and `"N"`, not 1 and 0.** Every script converts it with
    `(df["Dispute"] == "D").astype(int)`. If you write new code and forget this, every row silently
    becomes "not fraud" and your model will look perfect.

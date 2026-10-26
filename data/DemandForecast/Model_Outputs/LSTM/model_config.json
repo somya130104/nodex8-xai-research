@@ -1,0 +1,7 @@
+{
+  "architecture": "LSTM(2 layers, hidden=64) -> FC(32) -> 1",
+  "sequence_length_days": 28,
+  "sequence_note": "Window [t-27..t] inclusive; current day's own exogenous features (price/promo/calendar) are included at the last timestep, target is that day's QUANTITY. Missing days (gaps or insufficient history) are zero-padded.",
+  "n_features": 51,
+  "shuffle_sanity_check_mean_abs_pred_change": 1.513875
+}

@@ -133,7 +133,7 @@ something is wrong in the attribution → text pipeline — fix it before moving
 
 ---
 
-## Phase 2 — Advanced Models, Done Properly
+## Phase 2 — Advanced Models, Done Properly ✅ Done
 
 **Duration estimate:** ~3 weeks
 **Depends on:** Phase 0, Phase 1 (helpful but not strictly blocking)
@@ -141,6 +141,12 @@ something is wrong in the attribution → text pipeline — fix it before moving
 explanations built on top of them are explaining nothing meaningful. This phase fixes the two
 documented weak spots (the autoencoder, and DemandForecast's non-temporal "LSTM") and adds the one
 model family that's missing entirely (VAE).
+**Status:** implemented and verified — see ARCHITECTURE.md Section 5 for the real numbers, including
+an honest negative result (the autoencoder preprocessing fix improved reconstruction fidelity 3× but
+did not improve AUC — reported as-is, not re-tuned to chase a better number) and the LSTM sanity
+check (shuffling sequence order changes predictions, confirming real temporal memory is used). 2.3
+needed no new work (TabNet was already fixed in Phase 0); 2.5 (FT-Transformer) was skipped as the
+optional stretch goal it always was.
 
 ### 2.1 Rebuild the Autoencoder properly (TradeFraud)
 
@@ -729,7 +735,7 @@ Code review with NodeX8, a project presentation, and a final walkthrough of the 
 |---|---|---|---|---|
 | 0 | Fix and freeze | — | — | ✅ **Done** |
 | 1 | Local explanations, DemandForecast cohorts | ~2 weeks | Phase 0 | ✅ **Done** |
-| 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 | |
+| 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 | ✅ **Done** |
 | 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 | |
 | 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 | |
 | 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 | |

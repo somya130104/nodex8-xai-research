@@ -211,16 +211,61 @@ held-out brands than the tree models are.
 The autoencoder is trained **only on non-dispute clients**. It learns what "normal" looks like and
 then scores how badly it fails to reconstruct a new client — high reconstruction error means unusual.
 
-**Decision: we keep it even though its AUC (~0.53) is weak.** This is deliberate, and worth stating
-clearly because it will look odd otherwise:
+**Decision: we keep it even though its AUC (~0.48–0.54) is weak.** This is deliberate, and worth
+stating clearly because it will look odd otherwise:
 
 - It is the architecture family the proposal names first, and it is the primary target for LRD.
 - The research question is *"can we explain this model's reasoning quickly and faithfully?"* — an
   explainer is judged on whether it faithfully describes what the model did, not on whether the
   model is accurate.
-- That said, we know *why* it is weak: it is trained on raw standardised values of heavily
-  skewed financial amounts, so a handful of large-valued columns dominate the reconstruction error.
-  Log-transforming the amount columns is on the fix list.
+
+### Phase 2.1 — what we tried, and the honest result
+
+The original hypothesis (stated in an earlier version of this document) was that a handful of
+large-valued, heavily skewed amount columns were dominating the autoencoder's mean-squared
+reconstruction error. We tested this directly: `src/autoencoder_preprocessing.py` signed-log1p
+transforms every column with |skew| > 2 on normal training rows (263 of 271 — almost every feature in
+this dataset turned out to be heavily skewed, not just a handful), then standardises and clips to
+`[-5, 5]`, and the autoencoder's bottleneck layer was made a plain, deterministic `nn.Linear` (no
+BatchNorm/Dropout) with `encode()`/`decode()` exposed separately — both needed for Phase 3's LRD,
+which backpropagates through exactly this layer.
+
+**What actually happened, measured, not assumed:**
+
+| | Before (Phase 0) | After (Phase 2.1) |
+|---|---:|---:|
+| Best validation-split reconstruction MSE | 0.2433 | **0.0812** |
+| Validation OOS AUC-ROC [95% CI] | 0.537 [0.459, 0.612] | 0.478 [0.398, 0.555] |
+
+The preprocessing dramatically improved the autoencoder's actual job — reconstructing normal clients
+faithfully (MSE down ~3×, with training curves showing no instability). **It did not improve, and if
+anything slightly lowered, the AUC** — but the old AUC sits comfortably inside the new model's 95% CI,
+so this difference is statistical noise, not a real regression. The likely mechanism: compressing
+heavy tails makes the model fit the *bulk* of normal clients better, but some of the fraud signal in
+this dataset may specifically be "has an extreme, uncompressed value" — exactly what the log transform
+smooths over. This is a genuine, reportable trade-off, not a bug, and we are not re-tuning the
+threshold to chase a better AUC number — doing so would be exactly the kind of after-the-fact
+cherry-picking this cleanup exists to avoid. The architectural fix (clean, deterministic bottleneck;
+separate `encode()`/`decode()`) stands on its own merit for Phase 3 regardless of this AUC result.
+
+### Phase 2.2 — the VAE (new model, `Model9_VAE`)
+
+Built per the proposal (Architecture Family 1 explicitly names AE **and** VAE). Same preprocessing
+as the plain autoencoder (so the two are directly comparable), 32-dimensional latent space, trained
+on normal rows only, scored deterministically using `z = mu` (not a random sample — otherwise the
+same client could get a different score on every run, which would also break Phase 3's LRD, which
+needs a reproducible `z`).
+
+**KL annealing** (ramping the KL loss weight from 0 to 1 over the first 20% of training) was used to
+avoid posterior collapse — the well-known VAE failure mode where the model learns to ignore its input
+entirely and output a generic `mu=0, sigma²=1` for everything. We checked for this directly: final
+validation KL stayed at ≈9.7 (not collapsed to ≈0), and reconstruction loss fell by more than half
+over training (47.2 → 20.3) — the model is genuinely using its latent space.
+
+The VAE's AUC came out modestly, consistently higher than the plain autoencoder's across every split
+(e.g. Validation OOS 0.502 vs 0.478; OOT Dec 0.565 vs 0.519 — see
+`Model_Outputs/Model9_VAE/vae_vs_ae_comparison.csv`), though with only ~51 disputes in validation
+these differences are also well within noise and should not be read as "the VAE is better."
 
 ---
 
@@ -371,14 +416,22 @@ Recorded honestly so they are fixed deliberately rather than discovered by a rev
    package to the version verified working together (see its header comment for a macOS-specific
    `libomp` / `scipy` note we hit and resolved while doing this work).
 
+### Fixed in Phase 2
+
+8. ~~**The DemandForecast "LSTM" is not temporal.**~~ **Fixed.** `train_lstm.py` was rebuilt to use a
+   genuine 28-calendar-day lookback window per product (UPC), adapted from SalesForecasting's
+   reference LSTM windowing convention. A sanity check was added and passed: shuffling the order of
+   the 27 history days within a sequence changes the model's prediction by a mean of 1.51 units — the
+   old length-1 model would have shown exactly 0, since it had nothing to shuffle. See ROADMAP.md
+   Phase 2.4.
+9. ~~**Autoencoder preprocessing.**~~ **Addressed, with an honest caveat.** Heavy-tailed columns are
+   now signed-log1p-transformed, scaled, and clipped (`src/autoencoder_preprocessing.py`). This
+   measurably improved reconstruction fidelity (MSE 0.243 → 0.081) but did **not** improve AUC — see
+   Section 5's Phase 2.1 write-up for the full honest result and why we are not re-tuning to chase a
+   better number.
+
 ### Still open
 
-8. **The DemandForecast "LSTM" is not temporal.** It is fed sequences of length 1, which makes it a
-   plain feed-forward network. A genuine 28-day sequence model is needed for the proposal's temporal
-   architecture family. (SalesForecasting's LSTM already does this properly and can be adapted.)
-   This is Phase 2 work, not Phase 0 — it is a model-architecture change, not a correctness fix.
-9. **Autoencoder preprocessing.** Heavy-tailed amount columns are not log-transformed, so a few
-   columns dominate the reconstruction error. Also Phase 2 work.
 10. **Hosmer-Lemeshow calibration charts exist but should not be interpreted.** Every model
     deliberately distorts its probabilities (`scale_pos_weight`, SMOTE, `class_weight='balanced'`),
     and the autoencoder's "probability" is a min-max-scaled reconstruction error, so a calibration
@@ -387,7 +440,8 @@ Recorded honestly so they are fixed deliberately rather than discovered by a rev
     `shap_global.csv` and friends exist only locally. They are our evidence and should be committed.
 12. **No automated tests.** The proposal requires ≥85% test coverage for the final SDK;
     `src/eval_utils.py` has been exercised against synthetic data by hand but has no pytest suite yet.
-13. **Model numbering skips Model 1** (models run 2–7), a leftover from an earlier numbering scheme.
+13. **Model numbering skips Model 1 and Model 8** (models are 2–7, then 9 for the VAE), a leftover
+    from an earlier numbering scheme — harmless, left as-is rather than renumbering everything.
 14. **DemandForecast OOS is still split by brand (3 held-out brands), not by product.** The
     calendar-month fix (item 3) did not change this — it remains the most likely explanation for
     OOS R² being low and similar across every model (Section 4).
@@ -420,7 +474,7 @@ depends on clean inputs.
 |---|---|
 | **0. Fix and freeze** | ✅ **Done** (Section 7). Pinned dependencies; deduplicated disputes everywhere; moved TabNet's early stopping off the evaluation set; fixed one threshold per model; added bootstrap confidence intervals; fixed the LIME substring bug; fixed the DemandForecast OOT months and retrained everything on the corrected splits. |
 | **1. Finish baseline explainability** | ✅ **Done** (Section 5). Local (per-instance) SHAP and LIME for high-risk/high-value, borderline and misclassified/high-error cases; DemandForecast cohort level (Brand/DayType/Decile); per-instance placeholder τ between SHAP and LIME; `feature_hierarchy.csv` for both datasets. |
-| **2. Advanced models** | Rebuild the autoencoder with proper preprocessing; add the VAE; retrain TabNet cleanly; build a genuine sequence LSTM. |
+| **2. Advanced models** | ✅ **Done** (Section 5). Autoencoder rebuilt with signed-log1p preprocessing and a clean deterministic bottleneck (honest result: reconstruction fidelity improved 3×, AUC did not); VAE built with KL annealing (no posterior collapse); DemandForecast LSTM rebuilt with real 28-day sequences (sanity-checked). |
 | **3. The Tri-Explainer** | Adapted SHAP (with background-sensitivity study), Manifold-LIME, LRD — plus latency measurement and a synthetic ground-truth test. |
 | **4. CLI** | Weighted Kendall's τ, per-instance CLI per the proposal's Equation (1), aggregation by decile/segment/time, and calibration of the uncertainty gate. |
 | **5. Benchmarks** | Faithfulness, monotonicity, stability, latency, memory. |
