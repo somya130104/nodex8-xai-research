@@ -377,3 +377,28 @@ def run_study(*, model_name, f_torch, U_inst, y_inst, ids, U_normal, columns, ou
         json.dump(summary, fh, indent=2, default=float)
     print(f"✅ {model_name} done in {summary['runtime_seconds']}s -> {out_dir}")
     return summary, attrs, meta
+
+
+def primary_attributions(*, f_torch, U_inst, U_normal, snap=None, lrd_model=None, lrd_kind=None,
+                         cfg: StudyConfig = None):
+    """
+    Only the three PRIMARY explainers, built EXACTLY as run_study builds them (same
+    k-means references, IG steps, Manifold-LIME scale / sample count / snapping /
+    per-row seeds, LRD lambda). Used by Phase 4 to explain new instances (e.g. the
+    out-of-time months) without re-running the whole study.
+    Returns ({"AdaptedSHAP": (n, D), "ManifoldLIME": (n, D)[, "LRD": (n, D)]}, scalar (n,)).
+    """
+    cfg = cfg or StudyConfig()
+    U_inst = U_inst.astype(np.float32)
+    U_normal = U_normal.astype(np.float32)
+    with torch.no_grad():
+        f_vals = f_torch(torch.tensor(U_inst)).numpy()
+    out = {}
+    b_km = kmeans_baselines(U_normal, k=cfg.kmeans_k, seed=cfg.seed)
+    out["AdaptedSHAP"], _ = AdaptedSHAP(f_torch).ig_multi_baseline(U_inst, b_km, cfg.ig_steps)
+    mlime = ManifoldLIME(torch_black_box(f_torch), U_normal, scale=cfg.lime_scale,
+                         n_samples=cfg.lime_samples, snap=snap)
+    out["ManifoldLIME"], _ = mlime.explain_many(U_inst, "manifold", seed=0)
+    if lrd_model is not None:
+        out["LRD"] = LRDExplainer(lrd_model, kind=lrd_kind, lam=0.5).explain(U_inst)
+    return out, f_vals

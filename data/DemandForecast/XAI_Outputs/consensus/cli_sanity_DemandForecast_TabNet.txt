@@ -1,0 +1,29 @@
+DemandForecast_TabNet: CLI variant (K=3; TabNet attention mask in place of LRD)
+
+  --- HIGHEST CLI ---
+  20399  CLI=0.671  shared by all=3/5  pairwise overlap=[3, 4, 3]
+      AdaptedSHAP  : REG_PRICE, SALE_M_PRICE, rolling_mean_7, lag_1, rolling_mean_28
+      ManifoldLIME : REG_PRICE, MIN_PRICE, rolling_mean_7, price_discount, SALE_M_PRICE
+      TabNetNative : REG_PRICE, rolling_mean_7, lag_14, lag_1, SALE_M_PRICE
+  8379  CLI=0.645  shared by all=3/5  pairwise overlap=[3, 4, 4]
+      AdaptedSHAP  : SALE_M_PRICE, REG_PRICE, lag_1, rolling_mean_7, rolling_std_7
+      ManifoldLIME : REG_PRICE, lag_1, MIN_PRICE, lag_14, SALE_M_PRICE
+      TabNetNative : REG_PRICE, lag_14, rolling_mean_7, SALE_M_PRICE, lag_1
+  77406  CLI=0.621  shared by all=2/5  pairwise overlap=[3, 3, 2]
+      AdaptedSHAP  : lag_1, SALE_M_PRICE, rolling_mean_7, SALE_M_PACK, REG_PRICE
+      ManifoldLIME : lag_1, QDSPWeek, rolling_mean_7, SALE_M_PACK, price_x_promo
+      TabNetNative : lag_1, SALE_M_PRICE, rolling_mean_7, C_PROMOTION_FLG_NUM, lag_14
+
+  --- LOWEST CLI ---
+  55841  CLI=0.194  shared by all=0/5  pairwise overlap=[0, 2, 0]
+      AdaptedSHAP  : SALE_M_PRICE, lag_1, rolling_mean_7, REG_PRICE, dayofweek_num
+      ManifoldLIME : lag_7, competitor_discount_pct, price_vs_competitor, price_per_pack, MIN_PRICE
+      TabNetNative : is_weekend, rolling_std_7, rolling_mean_7, lag_28, SALE_M_PRICE
+  42983  CLI=0.205  shared by all=1/5  pairwise overlap=[2, 1, 1]
+      AdaptedSHAP  : REG_PRICE, rolling_mean_7, SALE_M_PRICE, lag_1, SALE_M_PACK
+      ManifoldLIME : competitor_discount_pct, lag_1, QDSPWeek, C_REG_PRICE, SALE_M_PRICE
+      TabNetNative : rolling_mean_28, C_REG_M_PACK, lag_14, lag_1, C_PROMOTION_FLG_NUM
+  46155  CLI=0.219  shared by all=1/5  pairwise overlap=[1, 2, 1]
+      AdaptedSHAP  : SALE_M_PRICE, REG_PRICE, lag_1, rolling_mean_7, price_per_pack
+      ManifoldLIME : price_per_pack, competitor_discount_pct, price_x_promo, MIN_PRICE, price_discount
+      TabNetNative : C_PROMOTION_FLG_NUM, rolling_mean_28, rolling_mean_7, price_per_pack, lag_14

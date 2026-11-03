@@ -1,0 +1,29 @@
+Model4_Autoencoder: Tri-Explainer CLI (K=3)
+
+  --- HIGHEST CLI ---
+  FP_CL_82686  CLI=0.692  shared by all=3/5  pairwise overlap=[4, 3, 3]
+      AdaptedSHAP  : BS_ratio_l_365d, avg_buy_size_l_045d, BS_ratio_l_045d, net_trade_amt_l_045d, minBscript_l_365d
+      ManifoldLIME : avg_buy_size_l_045d, net_trade_amt_l_045d, BS_ratio_l_365d, BS_ratio_l_045d, avg_buy_size_l_075d
+      LRD          : avg_buy_size_l_045d, net_trade_amt_l_045d, cash_AvgTradePerTradingDay, BS_ratio_l_365d, Avg_Trade_Amt_l_045d
+  FP_CL_74712  CLI=0.667  shared by all=4/5  pairwise overlap=[4, 5, 4]
+      AdaptedSHAP  : BscriptAvg_l_180d, SscriptAvg_l_180d, BscriptAvg_l_365d, bscript_range_l_180d, maxBscript_l_180d
+      ManifoldLIME : BscriptAvg_l_180d, bscript_range_l_180d, maxBscript_l_180d, BscriptAvg_l_365d, Avg_Trade_l_180d
+      LRD          : BscriptAvg_l_180d, bscript_range_l_180d, BscriptAvg_l_365d, SscriptAvg_l_180d, maxBscript_l_180d
+  FP_CL_103123  CLI=0.661  shared by all=3/5  pairwise overlap=[3, 4, 4]
+      AdaptedSHAP  : BS_ratio_l_007d, net_trade_amt_l_007d, net_trade_amt_l_015d, net_trade_amt_l_180d, Avg_Trade_l_007d
+      ManifoldLIME : net_trade_amt_l_180d, net_trade_amt_l_007d, net_trade_amt_l_015d, cash_membershipLength, avg_sell_size_l_015d
+      LRD          : net_trade_amt_l_180d, net_trade_amt_l_007d, BS_ratio_l_007d, cash_membershipLength, net_trade_amt_l_015d
+
+  --- LOWEST CLI ---
+  FP_CL_74632  CLI=0.003  shared by all=0/5  pairwise overlap=[0, 0, 0]
+      AdaptedSHAP  : Trade_numbers_l_007d, Trade_numbers_l_060d, Trade_numbers_l_015d, Trade_numbers_l_045d, Trade_numbers_l_021d
+      ManifoldLIME : Avg_Trade_l_180d, avg_sell_size_l_120d, Trade_totalAmt_l_365d, Trade_totalAmt_l_060d, SscriptAvg_l_150d
+      LRD          : cash_liveDays, cash_liveMonths, cash_dormancyPeriod, cash_daysTraded, cash_AvgTradePerTradingDay
+  FP_CL_03228  CLI=0.010  shared by all=0/5  pairwise overlap=[0, 0, 1]
+      AdaptedSHAP  : Trade_numbers_l_007d, Trade_numbers_l_045d, Trade_numbers_l_003d, Trade_numbers_l_060d, Trade_numbers_l_015d
+      ManifoldLIME : avg_sell_size_l_120d, Trade_sAmt_l_120d, Trade_totalAmt_l_120d, avg_sell_size_l_365d, SscriptAvg_l_180d
+      LRD          : SscriptAvg_l_365d, maxSscript_l_365d, avg_sell_size_l_365d, minSscript_l_365d, Trade_totalAmt_l_365d
+  FP_CL_92911  CLI=0.017  shared by all=0/5  pairwise overlap=[0, 0, 0]
+      AdaptedSHAP  : Trade_numbers_l_007d, Trade_numbers_l_045d, Trade_numbers_l_060d, Trade_numbers_l_015d, Trade_numbers_l_021d
+      ManifoldLIME : avg_sell_size_l_120d, Avg_Trade_Amt_l_120d, Trade_totalAmt_l_120d, Avg_Trade_Amt_l_180d, Trade_totalAmt_l_180d
+      LRD          : cash_daysTraded, cash_liveDays, cash_liveMonths, cash_preDurationLength, dormancy_ratio

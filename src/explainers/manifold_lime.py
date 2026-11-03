@@ -22,7 +22,11 @@ Manifold-LIME changes only how the copies are generated and weighted:
      itself an outlier, and centring on the mean (or discarding copies that
      lie "too far from the mean") would throw away exactly the neighbourhood
      that needs explaining.
-  4. Clip each feature to the range seen in the normal population, then
+  4. Clip each feature to the range seen in the normal population — widened,
+     per instance, to include x's own value, so the point being explained is
+     never moved (an out-of-time row with year=2013 when the reference ends in
+     2012 would otherwise have every copy dragged to 2012, the kernel weights
+     underflow to zero, and the explanation is of a different point) — then
      SNAP genuinely integer-valued columns (counts, binary flags, calendar
      fields) to whole numbers via the caller-supplied `snap` function —
      "promotion flag = 0.37" is not a real day. 96 of TradeFraud's 271 and
@@ -103,7 +107,7 @@ class ManifoldLIME:
         else:
             raise ValueError("mode must be 'manifold', 'manifold_noround' or 'independent'")
         raw = x + delta
-        Z = np.clip(raw, self.lo, self.hi)
+        Z = np.clip(raw, np.minimum(self.lo, x), np.maximum(self.hi, x))   # never clip x itself
         frac_clipped = float(np.mean(Z != raw))
         if mode == "manifold" and self.snap is not None:
             Z = np.asarray(self.snap(Z), dtype=np.float64)
@@ -129,6 +133,8 @@ class ManifoldLIME:
         rng = np.random.RandomState(seed)
         Z, frac_clipped = self.perturb(x, mode, rng, scale=s)
         w = self.weights(x, Z, mode, scale=s)
+        if not np.any(w > 0):
+            raise ValueError("all kernel weights underflowed to zero — perturbations are far from x")
         y = np.asarray(self.f(Z.astype(np.float32)), dtype=np.float64).ravel()
 
         Xfit = (Z - x) / s                     # unit-spread inputs so alpha is meaningful

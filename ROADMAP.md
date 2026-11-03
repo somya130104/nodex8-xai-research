@@ -420,7 +420,7 @@ perfectly ordinary for that client, something in that explainer's implementation
 
 ---
 
-## Phase 4 — The Consensus Logic Index (CLI)
+## Phase 4 — The Consensus Logic Index (CLI) ✅ Done
 
 **Duration estimate:** ~2 weeks
 **Depends on:** Phase 3 (needs all three explainers' outputs to exist)
@@ -518,13 +518,18 @@ rely on the same features" — it is just not the CLI. Rebuild it cleanly under 
 
 ### Phase 4 deliverables checklist
 
-- [ ] `weighted_kendall_tau()` with passing unit tests
-- [ ] `cli()` producing a per-instance score + GREEN/AMBER/RED flag, computed from 3 same-model
+- [x] `weighted_kendall_tau()` with passing unit tests
+- [x] `cli()` producing a per-instance score + GREEN/AMBER/RED flag, computed from 3 same-model
       explainers
-- [ ] Global, segment, decile, and OOT-stability CLI tables
-- [ ] A calibrated `tau_threshold` with a written justification for how it was chosen
-- [ ] Divergence analysis: for low-CLI cases, which feature(s) do the explainers disagree about most
-- [ ] The old cross-model metric, kept but clearly renamed and documented as a separate thing
+- [x] Global, segment, decile, and OOT-stability CLI tables
+- [x] A calibrated `tau_threshold` with a written justification for how it was chosen
+- [x] Divergence analysis: for low-CLI cases, which feature(s) do the explainers disagree about most
+- [x] The old cross-model metric, kept but clearly renamed and documented as a separate thing
+
+> **Status (see ARCHITECTURE.md Section 5, Phase 4):** all six items done. The threshold uses calibration
+> method 1 (quantiles, fixed before out-of-time data was scored); methods 2 and 3 remain open (method 2 needs
+> Phase 5). Carried into Phase 5: test a fix for Manifold-LIME's integer-snapping blind spot, and
+> re-calibrate the gate within the alert population.
 
 ### How to know Phase 4 is done
 
@@ -737,7 +742,7 @@ Code review with NodeX8, a project presentation, and a final walkthrough of the 
 | 1 | Local explanations, DemandForecast cohorts | ~2 weeks | Phase 0 | ✅ **Done** |
 | 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 | ✅ **Done** |
 | 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 | ✅ **Done** |
-| 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 | |
+| 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 | ✅ **Done** |
 | 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 | |
 | 6 | `claris_deep_xai` SDK packaging | ~2 weeks | Phases 3–5 | |
 | 7 | Paper, thesis, handover | ~3 weeks | Everything | |

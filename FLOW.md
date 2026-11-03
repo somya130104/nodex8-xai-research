@@ -263,7 +263,14 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `validation.py` | Feature-replacement faithfulness check, plausibility distance, agreement preview |
 | `studies.py` | One driver that puts *every* model through identical studies (attributions, background sensitivity, LIME diagnostics, faithfulness, latency) |
 
-`src/autoencoder_models.py` holds the importable AE/VAE classes; `tests/test_explainers.py` is the pytest suite for all of the above (`python3 -m pytest tests -q`).
+**Phase 4 — the Consensus Logic Index**
+
+| File | What it does |
+|---|---|
+| `src/consensus.py` | The math: `weighted_kendall_tau()` (hyperbolic top-weighted, written from scratch and checked against scipy), `cli()` per the proposal's Equation 1, the GREEN/AMBER/RED gate and its calibration, the reviewer note naming the disputed features, and `model_rashomon_index()` — cross-*model* agreement, which is **not** the CLI |
+| `src/consensus_analysis.py` | Shared tables for both datasets: per-instance CLI frame, group tables with bootstrap CIs, the faithfulness link, the high-vs-low CLI sanity check |
+
+`src/autoencoder_models.py` holds the importable AE/VAE classes; `tests/test_explainers.py` and `tests/test_consensus.py` are the pytest suites (`python3 -m pytest tests -q`).
 
 ### TradeFraud — `data/TradeFraud/scripts/`
 
@@ -298,6 +305,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` from `Data/variable_dictionary.csv` |
 | `run_tri_explainer_ae_vae.py` | Phase 3: Adapted SHAP + Manifold-LIME + LRD on the autoencoder and VAE (251 clients) |
 | `run_tri_explainer_tabnet.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet (LRD not applicable), plus TabNet's native masks |
+| `run_consensus_cli.py` | Phase 4: per-client CLI and review gate for the AE, VAE and TabNet; calibrates on Validation, explains and scores four out-of-time periods; writes `XAI_Outputs/consensus/` |
 | `run_baseline_lime.py` | The same three levels using LIME |
 | `extract_tabnet_masks.py` | Pulls out TabNet's *built-in* attention masks. **Note:** this is a signal the model gives for free, not one of the three explainers the research requires |
 | `plot_roc_all.py`, `plot_hosmer_lemeshow.py` | Charts. See ARCHITECTURE.md limitation 9 before interpreting the calibration chart |
@@ -315,6 +323,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` (hand-built groups — no variable dictionary exists for this dataset) |
 | `cohort_utils.py` | Shared `assign_day_type()` used by both the SHAP and LIME scripts |
 | `run_tri_explainer_tabnet_lstm.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet and the 28-day LSTM |
+| `run_consensus_cli.py` | Phase 4: CLI variant for TabNet (K=3 with its native mask) and two-explainer agreement for the LSTM, on OOS and the three OOT months |
 | `extract_tabnet_masks.py` | TabNet's native masks |
 
 ### SalesForecasting — reference only

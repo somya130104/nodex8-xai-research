@@ -1,0 +1,23 @@
+DemandForecast_LSTM: two-explainer agreement (K=2; not a Tri-Explainer CLI)
+
+  --- HIGHEST CLI ---
+  5009  CLI=0.719  shared by all=1/5  pairwise overlap=[1]
+      AdaptedSHAP  : is_weekend@t-0, day_of_week@t-0, dayofweek_num@t-0, lag_28@t-3, SALE_M_PACK@t-0
+      ManifoldLIME : lag_28@t-3, lag_1@t-2, lag_28@t-0, day_of_week@t-5, dayofweek_num@t-5
+  5152  CLI=0.669  shared by all=0/5  pairwise overlap=[0]
+      AdaptedSHAP  : is_weekend@t-0, dayofweek_num@t-0, day_of_week@t-0, is_weekend@t-1, SALE_M_PACK@t-0
+      ManifoldLIME : lag_28@t-1, lag_28@t-2, Day@t-8, day@t-8, lag_28@t-0
+  54863  CLI=0.585  shared by all=0/5  pairwise overlap=[0]
+      AdaptedSHAP  : day_of_week@t-0, lag_1@t-0, dayofweek_num@t-1, day_of_week@t-1, dayofweek_num@t-0
+      ManifoldLIME : lag_1@t-1, rolling_mean_7@t-0, rolling_std_7@t-1, rolling_std_7@t-0, lag_1@t-3
+
+  --- LOWEST CLI ---
+  44012  CLI=0.164  shared by all=0/5  pairwise overlap=[0]
+      AdaptedSHAP  : FirstTue@t-2, lag_1@t-0, lag_1@t-1, QDSPWeek@t-0, C_REG_PRICE@t-0
+      ManifoldLIME : rolling_std_7@t-23, price_ratio@t-13, discount_pct@t-13, rolling_std_7@t-22, QDSPWeek@t-24
+  14519  CLI=0.192  shared by all=0/5  pairwise overlap=[0]
+      AdaptedSHAP  : holiday@t-0, day_of_week@t-0, dayofweek_num@t-0, C_REG_PRICE@t-0, REG_PRICE@t-0
+      ManifoldLIME : Day@t-4, day@t-4, SALE_M_PACK@t-23, price_x_promo@t-22, Day@t-3
+  17971  CLI=0.197  shared by all=0/5  pairwise overlap=[0]
+      AdaptedSHAP  : SALE_M_PACK@t-0, day_of_week@t-0, dayofweek_num@t-0, C_REG_PRICE@t-0, lag_1@t-0
+      ManifoldLIME : Day@t-25, day@t-26, Day@t-26, day@t-25, Day@t-24

@@ -1,0 +1,823 @@
+{
+  "tau": "weighted Kendall tau, hyperbolic additive weights (Vigna 2015), ranking by |attribution|",
+  "gate_definition": {
+    "red": "CLI < 10th percentile on the Phase 3 OOS rows",
+    "amber": "< 25th percentile",
+    "undefined_CLI": "treated as RED"
+  },
+  "models": {
+    "DemandForecast_TabNet": {
+      "cli_label": "CLI variant (K=3; TabNet attention mask in place of LRD)",
+      "explainers": [
+        "AdaptedSHAP",
+        "ManifoldLIME",
+        "TabNetNative"
+      ],
+      "thresholds": {
+        "red": 0.34647592129156596,
+        "amber": 0.40308589007103884,
+        "how": "10th/25th percentile of CLI on the Phase 3 Out-of-Sample rows"
+      },
+      "n_instances": {
+        "validation_oos": 250,
+        "oot_2012-12": 150,
+        "oot_2013-01": 150,
+        "oot_2013-02": 150
+      },
+      "mean_pairwise_tau_all": {
+        "tau_AdaptedSHAP_vs_ManifoldLIME": 0.40008035203967884,
+        "tau_AdaptedSHAP_vs_TabNetNative": 0.569525863891423,
+        "tau_ManifoldLIME_vs_TabNetNative": 0.4040560719272757
+      },
+      "mean_companions_all": {
+        "CLI_unweighted": 0.28267495178171015,
+        "top5_jaccard": 0.3028741496598639,
+        "top5_sign_agreement": 0.7222857142857143
+      },
+      "n_undefined_CLI": 0,
+      "tables": {
+        "period": [
+          {
+            "Period": "validation_oos",
+            "n": 250,
+            "mean_CLI": 0.4631,
+            "ci95_lo": 0.4523,
+            "ci95_hi": 0.4737,
+            "median_CLI": 0.4754,
+            "q10_CLI": 0.3465,
+            "frac_RED": 0.1,
+            "frac_RED_ci95": "[0.064, 0.140]"
+          },
+          {
+            "Period": "oot_2012-12",
+            "n": 150,
+            "mean_CLI": 0.4539,
+            "ci95_lo": 0.4395,
+            "ci95_hi": 0.4685,
+            "median_CLI": 0.4615,
+            "q10_CLI": 0.3298,
+            "frac_RED": 0.1667,
+            "frac_RED_ci95": "[0.113, 0.227]"
+          },
+          {
+            "Period": "oot_2013-01",
+            "n": 150,
+            "mean_CLI": 0.4597,
+            "ci95_lo": 0.4434,
+            "ci95_hi": 0.4757,
+            "median_CLI": 0.4716,
+            "q10_CLI": 0.3182,
+            "frac_RED": 0.1467,
+            "frac_RED_ci95": "[0.093, 0.207]"
+          },
+          {
+            "Period": "oot_2013-02",
+            "n": 150,
+            "mean_CLI": 0.4514,
+            "ci95_lo": 0.4376,
+            "ci95_hi": 0.4652,
+            "median_CLI": 0.4523,
+            "q10_CLI": 0.3409,
+            "frac_RED": 0.1267,
+            "frac_RED_ci95": "[0.073, 0.180]"
+          }
+        ],
+        "day_type": [
+          {
+            "DayType": "Holiday",
+            "n": 82,
+            "mean_CLI": 0.4614,
+            "ci95_lo": 0.4413,
+            "ci95_hi": 0.4802,
+            "median_CLI": 0.4712,
+            "q10_CLI": 0.3432,
+            "frac_RED": 0.1098,
+            "frac_RED_ci95": "[0.049, 0.183]"
+          },
+          {
+            "DayType": "Promotion",
+            "n": 311,
+            "mean_CLI": 0.4715,
+            "ci95_lo": 0.4613,
+            "ci95_hi": 0.4815,
+            "median_CLI": 0.4815,
+            "q10_CLI": 0.3424,
+            "frac_RED": 0.1158,
+            "frac_RED_ci95": "[0.080, 0.154]"
+          },
+          {
+            "DayType": "Weekday",
+            "n": 221,
+            "mean_CLI": 0.4508,
+            "ci95_lo": 0.4391,
+            "ci95_hi": 0.4629,
+            "median_CLI": 0.4617,
+            "q10_CLI": 0.3343,
+            "frac_RED": 0.1312,
+            "frac_RED_ci95": "[0.086, 0.177]"
+          },
+          {
+            "DayType": "Weekend",
+            "n": 86,
+            "mean_CLI": 0.4235,
+            "ci95_lo": 0.4052,
+            "ci95_hi": 0.4418,
+            "median_CLI": 0.4361,
+            "q10_CLI": 0.3129,
+            "frac_RED": 0.1977,
+            "frac_RED_ci95": "[0.116, 0.279]"
+          }
+        ],
+        "brand_n_ge_15": [
+          {
+            "BRAND": "CHOBANI",
+            "n": 148,
+            "mean_CLI": 0.4367,
+            "ci95_lo": 0.4215,
+            "ci95_hi": 0.4535,
+            "median_CLI": 0.4386,
+            "q10_CLI": 0.3135,
+            "frac_RED": 0.2027,
+            "frac_RED_ci95": "[0.142, 0.270]"
+          },
+          {
+            "BRAND": "DANNON",
+            "n": 70,
+            "mean_CLI": 0.4572,
+            "ci95_lo": 0.4341,
+            "ci95_hi": 0.4804,
+            "median_CLI": 0.4691,
+            "q10_CLI": 0.3078,
+            "frac_RED": 0.1571,
+            "frac_RED_ci95": "[0.071, 0.243]"
+          },
+          {
+            "BRAND": "STONYFLD",
+            "n": 18,
+            "mean_CLI": 0.485,
+            "ci95_lo": 0.4395,
+            "ci95_hi": 0.5215,
+            "median_CLI": 0.5251,
+            "q10_CLI": 0.3531,
+            "frac_RED": 0.1111,
+            "frac_RED_ci95": "[0.000, 0.278]"
+          },
+          {
+            "BRAND": "TOPS",
+            "n": 233,
+            "mean_CLI": 0.4665,
+            "ci95_lo": 0.4554,
+            "ci95_hi": 0.4773,
+            "median_CLI": 0.4838,
+            "q10_CLI": 0.346,
+            "frac_RED": 0.103,
+            "frac_RED_ci95": "[0.064, 0.142]"
+          },
+          {
+            "BRAND": "VOSKOS",
+            "n": 25,
+            "mean_CLI": 0.4494,
+            "ci95_lo": 0.4071,
+            "ci95_hi": 0.4881,
+            "median_CLI": 0.4646,
+            "q10_CLI": 0.3471,
+            "frac_RED": 0.12,
+            "frac_RED_ci95": "[0.000, 0.241]"
+          },
+          {
+            "BRAND": "YOCRNCH",
+            "n": 24,
+            "mean_CLI": 0.476,
+            "ci95_lo": 0.4506,
+            "ci95_hi": 0.4993,
+            "median_CLI": 0.494,
+            "q10_CLI": 0.3696,
+            "frac_RED": 0.0417,
+            "frac_RED_ci95": "[0.000, 0.125]"
+          },
+          {
+            "BRAND": "YOPLAIT",
+            "n": 160,
+            "mean_CLI": 0.4652,
+            "ci95_lo": 0.4506,
+            "ci95_hi": 0.4801,
+            "median_CLI": 0.478,
+            "q10_CLI": 0.3369,
+            "frac_RED": 0.1125,
+            "frac_RED_ci95": "[0.069, 0.163]"
+          }
+        ],
+        "prediction_decile": [
+          {
+            "Prediction_Decile": 1,
+            "n": 45,
+            "mean_CLI": 0.4229,
+            "ci95_lo": 0.4028,
+            "ci95_hi": 0.443,
+            "median_CLI": 0.4495,
+            "q10_CLI": 0.3098,
+            "frac_RED": 0.1778,
+            "frac_RED_ci95": "[0.067, 0.289]"
+          },
+          {
+            "Prediction_Decile": 2,
+            "n": 45,
+            "mean_CLI": 0.4363,
+            "ci95_lo": 0.4105,
+            "ci95_hi": 0.4621,
+            "median_CLI": 0.4442,
+            "q10_CLI": 0.3196,
+            "frac_RED": 0.2,
+            "frac_RED_ci95": "[0.089, 0.333]"
+          },
+          {
+            "Prediction_Decile": 3,
+            "n": 45,
+            "mean_CLI": 0.4264,
+            "ci95_lo": 0.3992,
+            "ci95_hi": 0.4519,
+            "median_CLI": 0.4354,
+            "q10_CLI": 0.3002,
+            "frac_RED": 0.2222,
+            "frac_RED_ci95": "[0.111, 0.356]"
+          },
+          {
+            "Prediction_Decile": 4,
+            "n": 45,
+            "mean_CLI": 0.418,
+            "ci95_lo": 0.3937,
+            "ci95_hi": 0.4424,
+            "median_CLI": 0.4019,
+            "q10_CLI": 0.3123,
+            "frac_RED": 0.1778,
+            "frac_RED_ci95": "[0.067, 0.289]"
+          },
+          {
+            "Prediction_Decile": 5,
+            "n": 45,
+            "mean_CLI": 0.4353,
+            "ci95_lo": 0.4123,
+            "ci95_hi": 0.4579,
+            "median_CLI": 0.435,
+            "q10_CLI": 0.3199,
+            "frac_RED": 0.1778,
+            "frac_RED_ci95": "[0.067, 0.289]"
+          },
+          {
+            "Prediction_Decile": 6,
+            "n": 45,
+            "mean_CLI": 0.4294,
+            "ci95_lo": 0.4041,
+            "ci95_hi": 0.4538,
+            "median_CLI": 0.4457,
+            "q10_CLI": 0.2966,
+            "frac_RED": 0.2444,
+            "frac_RED_ci95": "[0.111, 0.378]"
+          },
+          {
+            "Prediction_Decile": 7,
+            "n": 45,
+            "mean_CLI": 0.442,
+            "ci95_lo": 0.4124,
+            "ci95_hi": 0.4713,
+            "median_CLI": 0.4559,
+            "q10_CLI": 0.3121,
+            "frac_RED": 0.1778,
+            "frac_RED_ci95": "[0.067, 0.289]"
+          },
+          {
+            "Prediction_Decile": 8,
+            "n": 45,
+            "mean_CLI": 0.495,
+            "ci95_lo": 0.4726,
+            "ci95_hi": 0.5166,
+            "median_CLI": 0.4996,
+            "q10_CLI": 0.4008,
+            "frac_RED": 0.0444,
+            "frac_RED_ci95": "[0.000, 0.111]"
+          },
+          {
+            "Prediction_Decile": 9,
+            "n": 45,
+            "mean_CLI": 0.5002,
+            "ci95_lo": 0.4808,
+            "ci95_hi": 0.5191,
+            "median_CLI": 0.5098,
+            "q10_CLI": 0.4196,
+            "frac_RED": 0.0222,
+            "frac_RED_ci95": "[0.000, 0.067]"
+          },
+          {
+            "Prediction_Decile": 10,
+            "n": 45,
+            "mean_CLI": 0.5447,
+            "ci95_lo": 0.517,
+            "ci95_hi": 0.5701,
+            "median_CLI": 0.5801,
+            "q10_CLI": 0.4293,
+            "frac_RED": 0.0222,
+            "frac_RED_ci95": "[0.000, 0.067]"
+          }
+        ]
+      },
+      "spearman_prediction_vs_CLI_oot": {
+        "rho": 0.37397922657131183,
+        "p": 2.1923073123480933e-16
+      },
+      "red_cases": {
+        "n": 91,
+        "weakest_pair_counts": {
+          "ManifoldLIME vs TabNetNative": 63,
+          "AdaptedSHAP vs ManifoldLIME": 21,
+          "AdaptedSHAP vs TabNetNative": 7
+        },
+        "most_disputed_features": [
+          [
+            "C_PROMOTION_FLG_NUM",
+            45
+          ],
+          [
+            "competitor_discount_pct",
+            17
+          ],
+          [
+            "MIN_PRICE",
+            13
+          ],
+          [
+            "SALE_M_PRICE",
+            13
+          ],
+          [
+            "C_REG_PRICE",
+            11
+          ],
+          [
+            "price_ratio",
+            11
+          ],
+          [
+            "discount_pct",
+            11
+          ],
+          [
+            "is_weekend",
+            10
+          ],
+          [
+            "rolling_mean_28",
+            10
+          ],
+          [
+            "price_per_pack",
+            9
+          ]
+        ]
+      },
+      "faithfulness_link_zero_operator": {
+        "spearman_CLI_vs_consensus_top_over_random": 0.06909649086747406,
+        "p_value": 0.0676940337030646,
+        "median_ratio_lowest_CLI_quartile": 3.9534034729003906,
+        "median_ratio_upper_three_quartiles": 3.9979116916656494,
+        "frac_top_gt_random_lowest_quartile": 0.8514285714285714,
+        "frac_top_gt_random_upper": 0.8742857142857143
+      },
+      "sanity_check": [
+        {
+          "group": "HIGHEST CLI",
+          "Instance_ID": 20399,
+          "CLI": 0.6714,
+          "shared_by_all": 3,
+          "mean_pairwise_overlap": 3.3333
+        },
+        {
+          "group": "HIGHEST CLI",
+          "Instance_ID": 8379,
+          "CLI": 0.6446,
+          "shared_by_all": 3,
+          "mean_pairwise_overlap": 3.6667
+        },
+        {
+          "group": "HIGHEST CLI",
+          "Instance_ID": 77406,
+          "CLI": 0.6212,
+          "shared_by_all": 2,
+          "mean_pairwise_overlap": 2.6667
+        },
+        {
+          "group": "LOWEST CLI",
+          "Instance_ID": 55841,
+          "CLI": 0.1944,
+          "shared_by_all": 0,
+          "mean_pairwise_overlap": 0.6667
+        },
+        {
+          "group": "LOWEST CLI",
+          "Instance_ID": 42983,
+          "CLI": 0.2051,
+          "shared_by_all": 1,
+          "mean_pairwise_overlap": 1.3333
+        },
+        {
+          "group": "LOWEST CLI",
+          "Instance_ID": 46155,
+          "CLI": 0.2189,
+          "shared_by_all": 1,
+          "mean_pairwise_overlap": 1.3333
+        }
+      ],
+      "reproduction_max_rel_diff_vs_phase3": {
+        "AdaptedSHAP": 5.004331985263185e-07,
+        "ManifoldLIME": 1.1799418231112568e-16
+      }
+    },
+    "DemandForecast_LSTM": {
+      "cli_label": "two-explainer agreement (K=2; not a Tri-Explainer CLI)",
+      "explainers": [
+        "AdaptedSHAP",
+        "ManifoldLIME"
+      ],
+      "thresholds": {
+        "red": 0.30770907078929144,
+        "amber": 0.35394448387425137,
+        "how": "10th/25th percentile of CLI on the Phase 3 Out-of-Sample rows"
+      },
+      "n_instances": {
+        "validation_oos": 120,
+        "oot_2012-12": 60,
+        "oot_2013-01": 60,
+        "oot_2013-02": 60
+      },
+      "mean_pairwise_tau_all": {
+        "tau_AdaptedSHAP_vs_ManifoldLIME": 0.4039617633708472
+      },
+      "mean_companions_all": {
+        "CLI_unweighted": 0.2451034949773268,
+        "top5_jaccard": 0.0821957671957672,
+        "top5_sign_agreement": 0.9153333333333334
+      },
+      "n_undefined_CLI": 0,
+      "tables": {
+        "period": [
+          {
+            "Period": "validation_oos",
+            "n": 120,
+            "mean_CLI": 0.4152,
+            "ci95_lo": 0.3981,
+            "ci95_hi": 0.4323,
+            "median_CLI": 0.4114,
+            "q10_CLI": 0.3077,
+            "frac_RED": 0.1,
+            "frac_RED_ci95": "[0.050, 0.158]"
+          },
+          {
+            "Period": "oot_2012-12",
+            "n": 60,
+            "mean_CLI": 0.4263,
+            "ci95_lo": 0.3968,
+            "ci95_hi": 0.4559,
+            "median_CLI": 0.4314,
+            "q10_CLI": 0.2665,
+            "frac_RED": 0.2167,
+            "frac_RED_ci95": "[0.117, 0.317]"
+          },
+          {
+            "Period": "oot_2013-01",
+            "n": 60,
+            "mean_CLI": 0.3842,
+            "ci95_lo": 0.354,
+            "ci95_hi": 0.4125,
+            "median_CLI": 0.3998,
+            "q10_CLI": 0.2411,
+            "frac_RED": 0.2167,
+            "frac_RED_ci95": "[0.117, 0.317]"
+          },
+          {
+            "Period": "oot_2013-02",
+            "n": 60,
+            "mean_CLI": 0.379,
+            "ci95_lo": 0.3457,
+            "ci95_hi": 0.4161,
+            "median_CLI": 0.3501,
+            "q10_CLI": 0.2301,
+            "frac_RED": 0.3167,
+            "frac_RED_ci95": "[0.200, 0.433]"
+          }
+        ],
+        "day_type": [
+          {
+            "DayType": "Holiday",
+            "n": 29,
+            "mean_CLI": 0.3501,
+            "ci95_lo": 0.298,
+            "ci95_hi": 0.4063,
+            "median_CLI": 0.3211,
+            "q10_CLI": 0.1993,
+            "frac_RED": 0.4828,
+            "frac_RED_ci95": "[0.310, 0.655]"
+          },
+          {
+            "DayType": "Promotion",
+            "n": 139,
+            "mean_CLI": 0.4095,
+            "ci95_lo": 0.3938,
+            "ci95_hi": 0.425,
+            "median_CLI": 0.4128,
+            "q10_CLI": 0.2816,
+            "frac_RED": 0.1223,
+            "frac_RED_ci95": "[0.072, 0.180]"
+          },
+          {
+            "DayType": "Weekday",
+            "n": 90,
+            "mean_CLI": 0.4103,
+            "ci95_lo": 0.3845,
+            "ci95_hi": 0.4348,
+            "median_CLI": 0.4061,
+            "q10_CLI": 0.2539,
+            "frac_RED": 0.1889,
+            "frac_RED_ci95": "[0.111, 0.267]"
+          },
+          {
+            "DayType": "Weekend",
+            "n": 42,
+            "mean_CLI": 0.4093,
+            "ci95_lo": 0.3699,
+            "ci95_hi": 0.4476,
+            "median_CLI": 0.4017,
+            "q10_CLI": 0.2341,
+            "frac_RED": 0.2143,
+            "frac_RED_ci95": "[0.095, 0.357]"
+          }
+        ],
+        "brand_n_ge_15": [
+          {
+            "BRAND": "CHOBANI",
+            "n": 64,
+            "mean_CLI": 0.4207,
+            "ci95_lo": 0.3869,
+            "ci95_hi": 0.4541,
+            "median_CLI": 0.4368,
+            "q10_CLI": 0.2451,
+            "frac_RED": 0.2188,
+            "frac_RED_ci95": "[0.125, 0.312]"
+          },
+          {
+            "BRAND": "DANNON",
+            "n": 22,
+            "mean_CLI": 0.4254,
+            "ci95_lo": 0.3714,
+            "ci95_hi": 0.4753,
+            "median_CLI": 0.4599,
+            "q10_CLI": 0.2439,
+            "frac_RED": 0.2727,
+            "frac_RED_ci95": "[0.091, 0.455]"
+          },
+          {
+            "BRAND": "TOPS",
+            "n": 106,
+            "mean_CLI": 0.3659,
+            "ci95_lo": 0.3481,
+            "ci95_hi": 0.3833,
+            "median_CLI": 0.3557,
+            "q10_CLI": 0.2555,
+            "frac_RED": 0.217,
+            "frac_RED_ci95": "[0.142, 0.302]"
+          },
+          {
+            "BRAND": "YOPLAIT",
+            "n": 67,
+            "mean_CLI": 0.4273,
+            "ci95_lo": 0.4002,
+            "ci95_hi": 0.4535,
+            "median_CLI": 0.4423,
+            "q10_CLI": 0.2874,
+            "frac_RED": 0.1493,
+            "frac_RED_ci95": "[0.060, 0.239]"
+          }
+        ],
+        "prediction_decile": [
+          {
+            "Prediction_Decile": 1,
+            "n": 18,
+            "mean_CLI": 0.4675,
+            "ci95_lo": 0.4179,
+            "ci95_hi": 0.5198,
+            "median_CLI": 0.4872,
+            "q10_CLI": 0.3101,
+            "frac_RED": 0.1111,
+            "frac_RED_ci95": "[0.000, 0.278]"
+          },
+          {
+            "Prediction_Decile": 2,
+            "n": 18,
+            "mean_CLI": 0.3608,
+            "ci95_lo": 0.307,
+            "ci95_hi": 0.4195,
+            "median_CLI": 0.3306,
+            "q10_CLI": 0.2403,
+            "frac_RED": 0.3333,
+            "frac_RED_ci95": "[0.111, 0.556]"
+          },
+          {
+            "Prediction_Decile": 3,
+            "n": 18,
+            "mean_CLI": 0.416,
+            "ci95_lo": 0.3605,
+            "ci95_hi": 0.4701,
+            "median_CLI": 0.4124,
+            "q10_CLI": 0.2667,
+            "frac_RED": 0.2222,
+            "frac_RED_ci95": "[0.056, 0.444]"
+          },
+          {
+            "Prediction_Decile": 4,
+            "n": 18,
+            "mean_CLI": 0.3962,
+            "ci95_lo": 0.3152,
+            "ci95_hi": 0.4781,
+            "median_CLI": 0.3998,
+            "q10_CLI": 0.1763,
+            "frac_RED": 0.2222,
+            "frac_RED_ci95": "[0.056, 0.444]"
+          },
+          {
+            "Prediction_Decile": 5,
+            "n": 18,
+            "mean_CLI": 0.3756,
+            "ci95_lo": 0.3141,
+            "ci95_hi": 0.4418,
+            "median_CLI": 0.3329,
+            "q10_CLI": 0.251,
+            "frac_RED": 0.3333,
+            "frac_RED_ci95": "[0.111, 0.556]"
+          },
+          {
+            "Prediction_Decile": 6,
+            "n": 18,
+            "mean_CLI": 0.3026,
+            "ci95_lo": 0.2514,
+            "ci95_hi": 0.3597,
+            "median_CLI": 0.2959,
+            "q10_CLI": 0.184,
+            "frac_RED": 0.5556,
+            "frac_RED_ci95": "[0.333, 0.778]"
+          },
+          {
+            "Prediction_Decile": 7,
+            "n": 18,
+            "mean_CLI": 0.3716,
+            "ci95_lo": 0.3347,
+            "ci95_hi": 0.4116,
+            "median_CLI": 0.3629,
+            "q10_CLI": 0.267,
+            "frac_RED": 0.2222,
+            "frac_RED_ci95": "[0.056, 0.444]"
+          },
+          {
+            "Prediction_Decile": 8,
+            "n": 18,
+            "mean_CLI": 0.4048,
+            "ci95_lo": 0.3641,
+            "ci95_hi": 0.4481,
+            "median_CLI": 0.4021,
+            "q10_CLI": 0.2778,
+            "frac_RED": 0.1667,
+            "frac_RED_ci95": "[0.000, 0.333]"
+          },
+          {
+            "Prediction_Decile": 9,
+            "n": 18,
+            "mean_CLI": 0.421,
+            "ci95_lo": 0.3617,
+            "ci95_hi": 0.475,
+            "median_CLI": 0.4653,
+            "q10_CLI": 0.244,
+            "frac_RED": 0.2222,
+            "frac_RED_ci95": "[0.056, 0.444]"
+          },
+          {
+            "Prediction_Decile": 10,
+            "n": 18,
+            "mean_CLI": 0.4486,
+            "ci95_lo": 0.4061,
+            "ci95_hi": 0.49,
+            "median_CLI": 0.4606,
+            "q10_CLI": 0.3418,
+            "frac_RED": 0.1111,
+            "frac_RED_ci95": "[0.000, 0.278]"
+          }
+        ]
+      },
+      "spearman_prediction_vs_CLI_oot": {
+        "rho": 0.0360875335658508,
+        "p": 0.630552939142474
+      },
+      "red_cases": {
+        "n": 57,
+        "weakest_pair_counts": {
+          "AdaptedSHAP vs ManifoldLIME": 57
+        },
+        "most_disputed_features": [
+          [
+            "REG_M_PACK@t-0",
+            22
+          ],
+          [
+            "holiday@t-0",
+            13
+          ],
+          [
+            "REG_M_PACK@t-1",
+            11
+          ],
+          [
+            "is_weekend@t-0",
+            8
+          ],
+          [
+            "dayofweek_num@t-0",
+            7
+          ],
+          [
+            "REG_M_PACK@t-2",
+            5
+          ],
+          [
+            "is_weekend@t-1",
+            5
+          ],
+          [
+            "dayofweek_num@t-1",
+            4
+          ],
+          [
+            "holiday@t-1",
+            3
+          ],
+          [
+            "FirstTue@t-3",
+            3
+          ]
+        ]
+      },
+      "faithfulness_link_zero_operator": {
+        "spearman_CLI_vs_consensus_top_over_random": 0.2837355970621896,
+        "p_value": 5.822959601241972e-07,
+        "median_ratio_lowest_CLI_quartile": 11.120738983154297,
+        "median_ratio_upper_three_quartiles": 19.42618751525879,
+        "frac_top_gt_random_lowest_quartile": 0.9333333333333333,
+        "frac_top_gt_random_upper": 0.9911111111111112
+      },
+      "sanity_check": [
+        {
+          "group": "HIGHEST CLI",
+          "Instance_ID": 5009,
+          "CLI": 0.7189,
+          "shared_by_all": 1,
+          "mean_pairwise_overlap": 1.0
+        },
+        {
+          "group": "HIGHEST CLI",
+          "Instance_ID": 5152,
+          "CLI": 0.6686,
+          "shared_by_all": 0,
+          "mean_pairwise_overlap": 0.0
+        },
+        {
+          "group": "HIGHEST CLI",
+          "Instance_ID": 54863,
+          "CLI": 0.5854,
+          "shared_by_all": 0,
+          "mean_pairwise_overlap": 0.0
+        },
+        {
+          "group": "LOWEST CLI",
+          "Instance_ID": 44012,
+          "CLI": 0.1637,
+          "shared_by_all": 0,
+          "mean_pairwise_overlap": 0.0
+        },
+        {
+          "group": "LOWEST CLI",
+          "Instance_ID": 14519,
+          "CLI": 0.1921,
+          "shared_by_all": 0,
+          "mean_pairwise_overlap": 0.0
+        },
+        {
+          "group": "LOWEST CLI",
+          "Instance_ID": 17971,
+          "CLI": 0.1971,
+          "shared_by_all": 0,
+          "mean_pairwise_overlap": 0.0
+        }
+      ],
+      "feature_level": {
+        "mean_CLI": 0.3471237139507421,
+        "spearman_with_flattened_CLI": 0.4946397182190913
+      }
+    }
+  },
+  "runtime_s": 162.2
+}

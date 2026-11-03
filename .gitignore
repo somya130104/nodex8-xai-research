@@ -30,3 +30,7 @@ env/
 *.png
 *.jpg
 *.jpeg
+
+# Phase 4 caches and run logs
+*.npz
+run_log*.txt

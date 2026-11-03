@@ -1,0 +1,29 @@
+Model7_TabNet: CLI variant (K=3; TabNet attention mask in place of LRD)
+
+  --- HIGHEST CLI ---
+  FP_CL_150028  CLI=0.549  shared by all=2/5  pairwise overlap=[2, 3, 2]
+      AdaptedSHAP  : Trade_days_l_003d, cash_Td_totalAmt, activity_shift_7v90d, maxBscript_l_180d, minBscript_l_007d
+      ManifoldLIME : Trade_days_l_003d, activity_shift_7v90d, bscript_bs_ratio_l_007d, maxSscript_l_120d, BscriptAvg_l_015d
+      TabNetNative : Trade_days_l_003d, activity_shift_7v90d, cash_Td_totalAmt, maxSscript_l_015d, Avg_Trade_Amt_l_180d
+  FP_CL_140175  CLI=0.535  shared by all=2/5  pairwise overlap=[2, 3, 2]
+      AdaptedSHAP  : Trade_days_l_003d, activity_shift_7v90d, cash_Td_totalAmt, minBscript_l_007d, maxBscript_l_180d
+      ManifoldLIME : activity_shift_7v90d, Trade_days_l_015d, Trade_days_l_003d, cash_daysTraded, Trade_days_l_030d
+      TabNetNative : Trade_days_l_003d, activity_shift_7v90d, cash_Td_totalAmt, avg_buy_size_l_365d, avg_sell_size_l_150d
+  FP_CL_03538  CLI=0.510  shared by all=3/5  pairwise overlap=[3, 3, 3]
+      AdaptedSHAP  : activity_shift_7v90d, Trade_days_l_003d, maxBscript_l_180d, maxSscript_l_015d, recent_activity_ratio_30d
+      ManifoldLIME : Trade_days_l_003d, maxSscript_l_015d, activity_shift_7v90d, Avg_Trade_l_007d, SscriptAvg_l_015d
+      TabNetNative : maxSscript_l_015d, activity_shift_7v90d, Trade_days_l_003d, cash_Td_totalAmt, net_trade_amt_l_003d
+
+  --- LOWEST CLI ---
+  FP_CL_139164  CLI=0.082  shared by all=0/5  pairwise overlap=[0, 3, 0]
+      AdaptedSHAP  : activity_shift_7v90d, maxBscript_l_180d, minBscript_l_007d, minSscript_l_180d, cash_Td_totalAmt
+      ManifoldLIME : Trade_totalAmt_l_365d, Avg_Trade_Amt_l_365d, Trade_totalAmt_l_120d, maxBscript_l_365d, bscript_range_l_365d
+      TabNetNative : minBscript_l_007d, cash_Td_totalAmt, Trade_numbers_l_150d, maxBscript_l_180d, cash_AvgTradePerTradingDay
+  FP_CL_75867  CLI=0.083  shared by all=0/5  pairwise overlap=[0, 3, 0]
+      AdaptedSHAP  : activity_shift_7v90d, maxBscript_l_180d, minBscript_l_007d, cash_Td_totalAmt, cash_dormancyPeriod
+      ManifoldLIME : trade_intensity, Avg_Trade_l_120d, Avg_Trade_l_150d, Trade_numbers_l_365d, avg_buy_size_l_090d
+      TabNetNative : minBscript_l_007d, cash_Td_totalAmt, Trade_numbers_l_150d, maxBscript_l_180d, cash_AvgTradePerTradingDay
+  FP_CL_04314  CLI=0.085  shared by all=0/5  pairwise overlap=[0, 3, 0]
+      AdaptedSHAP  : activity_shift_7v90d, maxBscript_l_180d, minBscript_l_007d, cash_dormancyPeriod, cash_Td_totalAmt
+      ManifoldLIME : bscript_bs_ratio_l_365d, Trade_bAmt_l_365d, Trade_numbers_l_365d, avg_buy_size_l_365d, cash_liveMonths
+      TabNetNative : minBscript_l_007d, cash_Td_totalAmt, Trade_numbers_l_150d, maxBscript_l_180d, cash_AvgTradePerTradingDay

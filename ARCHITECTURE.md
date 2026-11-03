@@ -2,7 +2,7 @@
 
 **Project:** Explainability and Consensus Attribution for Non-Linear Deep Architectures in Regulated Financial Systems
 **Partners:** NodeX8 AI Technologies Pvt. Ltd. × IIT Kharagpur (HuMICE Lab, Dept. of Industrial & Systems Engineering)
-**Status:** The three explainers (Adapted SHAP, Manifold-LIME, LRD) are built and have been put through identical studies on five models (Phase 3). The consensus index (CLI), its uncertainty gate and the formal benchmark suite are **not** built yet — see [What Is Deliberately Not Here Yet](#6-what-is-deliberately-not-here-yet).
+**Status:** The three explainers (Adapted SHAP, Manifold-LIME, LRD) are built and studied on five models (Phase 3), and the per-instance Consensus Logic Index (CLI) with its calibrated review gate is built and evaluated, including on out-of-time data (Phase 4). The formal benchmark suite (Phase 5) is **not** built yet — see [What Is Deliberately Not Here Yet](#6-what-is-deliberately-not-here-yet).
 
 This document records **the decisions we have actually made and can defend**, and why we made them.
 It is the honest record of the project. If a number or a claim is not in this file, it is not something
@@ -384,7 +384,14 @@ cherry-picked. Everything else is reported as an ablation.
    (mean L is 22.6) **even for a random ranking** — grafting one client's values onto another creates an
    off-manifold client. A "repair" operator (set the features to the typical value, 0) was added. Both are
    reported; conclusions are drawn only where they agree. Each has its own bias (below).
-6. *Bugs found by the tests and fixed:* captum's GradientSHAP draws from numpy's *global* RNG, so seeding
+6. *A clipping bug found in Phase 4 and fixed (DemandForecast numbers above are post-fix).* Manifold-LIME
+   clipped perturbations to the range seen in the reference data — including the instance's *own* value when
+   that value lay outside the range. 41% of the DemandForecast OOS rows have a price feature outside the DEV
+   range, so their perturbations were centred on a slightly different point. The clip is now widened per
+   instance to include x (regression test added). No TradeFraud instance is out of range (checked: 0 of 251,
+   and 0 of the 1,083 Phase 4 out-of-time clients), so **no TradeFraud number changed**; the DemandForecast
+   study was re-run and its figures moved by ≤ 0.01 at the precision reported here.
+7. *Bugs found by the tests and fixed:* captum's GradientSHAP draws from numpy's *global* RNG, so seeding
    torch alone did not make it reproducible; and a 3-operand `einsum` made Manifold-LIME ~4× slower than
    needed (the first run was killed and redone).
 
@@ -486,7 +493,7 @@ and the LSTM the bottom effect is exactly zero (sparse attention; constant colum
 **Do the explainers agree?** Placeholder weighted-τ between the three *primary* explainers (this is a
 preview, **not** the CLI): autoencoder/VAE — Adapted SHAP–Manifold-LIME 0.18, Adapted SHAP–LRD 0.27,
 Manifold-LIME–LRD 0.52; TabNet (TradeFraud) — 0.16 between the two explainers, 0.43 / 0.12 against TabNet's
-own attention masks; TabNet (Demand) — 0.41, 0.57, 0.37; LSTM — 0.41 on the 1,428 time×feature cells, 0.34
+own attention masks; TabNet (Demand) — 0.41, 0.57, 0.38; LSTM — 0.42 on the 1,428 time×feature cells, 0.34
 after summing over time to the 51 features. The explainers disagree substantially, most in the 271-feature
 problems. That disagreement is exactly what Phase 4 is meant to measure and gate on.
 
@@ -507,6 +514,135 @@ of total mass at t-0, 48% in the last three days, 15% across the first fourteen 
 matters, but mostly through the final day, whose features already include the engineered lag and rolling
 statistics.
 
+### Phase 4 — the Consensus Logic Index (CLI) and the review gate
+
+**What was built.** `src/consensus.py` (the math, 18 tests in `tests/test_consensus.py`),
+`src/consensus_analysis.py` (tables shared by both datasets) and one driver per dataset
+(`run_consensus_cli.py`). For every explained instance the output row holds the CLI, the three pairwise
+τ's, a GREEN / AMBER / RED flag and — for non-GREEN cases — a reviewer note. A real one, for the
+lowest-CLI validation client on the autoencoder: *"REVIEW: CLI=0.003. Weakest pair AdaptedSHAP vs LRD
+(tau_w=-0.212). Most disputed: cash_liveDays (#234 by AdaptedSHAP, #1 by LRD); cash_liveMonths (#211 by
+AdaptedSHAP, #2 by LRD); Trade_numbers_l_007d (#1 by AdaptedSHAP, #205 by LRD)"*.
+
+**The weighted Kendall τ.** Hyperbolic additive weighting (Vigna 2015): a pair of features (i, j) gets weight
+1/(rᵢ+1) + 1/(rⱼ+1), where r is the rank (0 = most important) by |attribution|; the index is computed once
+with ranks from each explainer and averaged, so it is symmetric and a feature that *either* explainer puts at
+the top counts heavily. Ties are handled as in Kendall's τ-b (TabNet's mask is 98% exact zeros, so this
+matters). Why these choices:
+- *Written from scratch, checked against an independent implementation.* On tie-free input it equals
+  `scipy.stats.weightedtau` to 10⁻¹² in 25 random cases; with exponent 0 it equals scipy's Kendall τ-b with
+  heavy ties. scipy itself is not used because it breaks ties in one explainer's ranking *using the other
+  explainer's values*, which leaks information between the two rankings being compared.
+- *The roadmap's required tests pass:* identical → 1, reversed → −1, a #1/#2 swap costs more than a #99/#100
+  swap (unweighted τ cannot tell them apart — tested), and the cost decreases monotonically with depth.
+- *Ranking by magnitude, not sign:* LRD is a non-negative share of an error, IG and LIME are signed
+  contributions, so "which features matter, in what order" is the only question all three answer. Direction
+  agreement among the signed explainers is reported separately (66–92% of consensus top-5 features).
+- *Weighting matters:* the unweighted CLI is far lower (autoencoder 0.14 vs 0.33; TabNet 0.04 vs 0.25), i.e.
+  the explainers agree more about the top of the ranking than about the tail — exactly what the weighting is for.
+
+**What CLI(x) is computed over** (one model, one instance, that model's own explainers — never across models):
+
+| Model | Explainers (K) | Label |
+|---|---|---|
+| Autoencoder, VAE (TradeFraud) | Adapted SHAP, Manifold-LIME, LRD (3) | the proposal's Tri-Explainer CLI |
+| TabNet (TradeFraud, DemandForecast) | Adapted SHAP, Manifold-LIME, TabNet's attention mask (3) | a CLI *variant* — no LRD without a bottleneck |
+| LSTM (DemandForecast) | Adapted SHAP, Manifold-LIME (2) | two-explainer agreement; with one pair it is not a Tri-Explainer CLI |
+
+**Data.** Calibration: the Phase 3 instances (attributions re-used, not recomputed). Out-of-time: TradeFraud's
+internal OOT (Aug–Sep 2025) and Oct / Nov / Dec 2025 — every unique dispute (15–32 per period) + 250 random
+normal clients each, 1,083 clients per model in all; DemandForecast's three OOT months (Dec 2012 – Feb 2013),
+150 rows each (60 for the LSTM). New instances are explained by a helper that rebuilds Phase 3's primary
+explainers exactly (verified: max relative difference vs the stored Phase 3 attributions ≤ 5×10⁻⁷).
+
+**Gate calibration — fixed before any out-of-time CLI was looked at.** Roadmap method 1 (quantiles):
+RED = CLI below the 10th percentile of the calibration CLI, AMBER = below the 25th (AMBER's level is a
+convention, not a result). TradeFraud calibrates on the 200 random *normal* validation clients only — disputes
+are a 20% over-sample of a 0.2% population (including them moves the thresholds by ≤ 0.009). Methods 2
+(faithfulness-linked) and 3 (human rating) are not done: method 2 needs Phase 5's ground-truth tests; method 3
+needs raters.
+
+| | Autoencoder | VAE | TabNet (TF) | TabNet (Demand) | LSTM |
+|---|---:|---:|---:|---:|---:|
+| RED threshold / AMBER threshold | 0.123 / 0.205 | 0.139 / 0.231 | 0.131 / 0.163 | 0.346 / 0.403 | 0.308 / 0.354 |
+| median CLI, calibration set | 0.32 | 0.31 | 0.23 | 0.48 | 0.41 |
+| mean pairwise τw (weakest pair) | SHAP–LIME 0.18 | SHAP–LIME 0.18 | LIME–mask 0.12 | SHAP–LIME 0.40 | 0.40 |
+| Spearman(CLI, top-5 overlap), all instances | 0.82 | 0.77 | **0.18** | 0.64 | 0.44 |
+| RED fraction out-of-time, by period (10% by construction on calibration) | 6, 8, 11, 9% | 8, 6, 8, 9% | 12, 9, 9, 10% | 17, 15, 13% | **22, 22, 32%** |
+| Spearman(model score, CLI), out-of-time | **+0.74** | **+0.73** | **−0.55** | +0.37 | +0.04 |
+
+**Findings**
+
+1. **The roadmap's sanity check passes where the CLI is a genuine Tri-Explainer CLI, and fails where it is not.**
+   On the autoencoder the three highest-CLI clients share 3–4 of their top-5 features across all three
+   explainers, the three lowest share none, and over all 1,334 clients top-5 overlap rises steadily with CLI
+   (mean Jaccard 0.04 → 0.42 across CLI quintiles). The VAE and DemandForecast TabNet show the same trend,
+   though individual VAE high-CLI clients overlap less (1 feature shared by all three). It fails for
+   **TradeFraud TabNet** (CLI barely tracks top-5 overlap, Spearman 0.18): the attention mask is 98% exact
+   zeros, so its τ is decided by a handful of features. It also fails for the **LSTM's 1,428 flattened columns**,
+   where even the highest-CLI rows share 0–1 top-5 features: at that dimensionality the hyperbolic weights
+   leave most of the mass in the bulk of the ranking. *So the CLI can be read as "do the explainers agree on
+   the top drivers" for the autoencoder family and DemandForecast TabNet only.*
+2. **Agreement is modest in absolute terms.** Median CLI ≈ 0.31–0.32 on the autoencoders. The weakest pair is
+   almost always Adapted SHAP vs Manifold-LIME (78% of autoencoder clients); Manifold-LIME vs LRD agree best
+   (0.53), consistent with both crediting features whose values are far from typical.
+3. **Agreement is *highest* in the highest-risk deciles on the autoencoders — the opposite of the worry in the
+   roadmap.** On the autoencoder mean CLI rises from 0.19 (lowest-score decile) to 0.54 (highest), and no client
+   in the top four deciles is flagged RED (VAE: 0.18 → 0.51, 3 of 400). When the model finds a client unusual there is a strong signal that all three
+   explainers pick up; when the client is typical, the explainers are attributing a small error to noise, and
+   disagree. **Consequence for deployment:** a single global threshold spends almost all review capacity on
+   low-score clients that would not be acted on anyway. The gate should be calibrated *within the population
+   that triggers an alert* — not done here, because neither autoencoder has a usable alert threshold
+   (AUC ≈ 0.5). TabNet behaves differently: CLI falls with score (Spearman −0.55), and RED cases concentrate in
+   deciles 6–8 (45% RED in decile 8). So the relationship between risk and agreement is model-specific.
+4. **Segments: small effects once score is controlled for.** Raw differences look large (autoencoder: Power
+   Trader 0.40 vs Regular 0.28), but Power Traders simply have higher reconstruction error. Comparing clients
+   with similar scores (20 score bins), the residual differences are a few hundredths: Dormant and Occasional
+   clients +0.045 on the autoencoder/VAE, Power Traders +0.024 on TabNet. Disputes and normal clients do not
+   differ on the autoencoders (0.335 vs 0.326, CIs overlap); on TabNet disputes agree slightly more (0.27 vs 0.25).
+5. **Out-of-time: TradeFraud is stable; the DemandForecast LSTM is not.** For TradeFraud, the RED fraction stays
+   within sampling error of the calibrated 10% in every period, and mean CLI's confidence intervals overlap
+   validation's throughout. On DemandForecast, TabNet edges up (13–17%), and the LSTM's RED fraction rises to
+   22%, 22% and 32% (February's 95% CI 20–43% excludes 10%; n = 60 per month) as mean agreement falls from 0.42
+   to 0.38. The 2013 OOT rows have `year` outside the training range. This is the drift signal the gate is
+   meant to raise.
+6. **The divergence analysis found two real problems — which is the gate doing its job.**
+   - *A blind spot in Manifold-LIME.* Almost every RED TabNet case (128 of 129) disputes `minBscript_l_007d`,
+     and 119 dispute `maxBscript_l_180d`. Adapted SHAP and the attention mask rank them #2–#4; Manifold-LIME
+     ranks them ~#200–250. Both are low counts, mostly 0. **Integer snapping rounds almost every perturbation
+     of such a feature back to its original value:** the median integer column is changed by only 4.4% of
+     perturbations (vs 59% for continuous columns), and 31% of integer columns are changed by fewer than 2%.
+     Manifold-LIME therefore cannot see low-count features, however much the model relies on them. The
+     DemandForecast disputes concentrate on discrete features too (competitor promotion flag, `REG_M_PACK`,
+     `holiday`), consistent with the same mechanism. The Phase 3 primary is **not** changed after seeing
+     this. A fix (e.g. stochastic rounding, which keeps values integer but lets them move) is recorded for Phase 5,
+     to be evaluated on the ground-truth tests.
+   - *The clipping bug* described under Phase 3, found when out-of-time DemandForecast rows crashed Manifold-LIME.
+   - On the autoencoder, Adapted SHAP fixates on the short-window trade-count family (`Trade_numbers_l_007d` in 61
+     of 118 RED cases) when the client is typical — consistent with Phase 3's finding that IG's answer depends
+     heavily on its reference point.
+7. **No evidence yet that low CLI means a *less faithful* explanation.** For each client, the consensus top-5
+   features were replaced and the effect compared with replacing random features. Across TradeFraud the
+   correlation with CLI is weak and changes sign with the replacement operator (+0.10 zero / −0.15 donor on
+   the autoencoder). It is +0.07 on DemandForecast TabNet. Only the LSTM shows a positive link (+0.28). **So
+   today the gate is justified as a transparency signal — "the explainers disagree, a human should look" — not
+   as a detector of wrong explanations.** Whether it is the latter is a Phase 5 question.
+
+**The old cross-model metric, rebuilt and renamed `model_rashomon_index`** (same explainer, same client,
+*different models* — never called CLI):
+
+| | AE vs VAE | AE vs TabNet | VAE vs TabNet |
+|---|---:|---:|---:|
+| Adapted SHAP, mean τw over 251 validation clients | 0.62 | 0.12 | 0.11 |
+| Manifold-LIME, same clients | **0.89** | 0.56 | 0.56 |
+
+Global mean |SHAP| (Phase 1) across XGBoost, Random Forest, LightGBM and logistic regression: mean τw 0.50,
+Kendall's W 0.44 (tree models agree with each other at 0.61–0.67, with logistic regression at 0.29–0.41).
+**An important caution for the paper:** Manifold-LIME ranks features more similarly *across two different
+models* (AE vs VAE 0.89) than Adapted SHAP and Manifold-LIME do *on the same model* (0.18). Which explainer
+is used shapes the explanation more than which model is being explained — so cross-explainer disagreement
+(the CLI) and cross-model disagreement (this index) must not be conflated.
+
 ---
 
 ## 6. What is deliberately NOT here yet
@@ -520,8 +656,8 @@ This section exists so that nobody — including us — mistakes groundwork for 
 | **LRD — Latent Reconstruction Decomposition** (back-projecting reconstruction error through the bottleneck, target < 50 ms) | ✅ Built (≈2 ms); **provisional** — formulation is ours, awaiting NodeX8's confirmation (Section 8, Q2); λ to be settled in Phase 5 |
 | **VAE** (probabilistic latent space; richer LRD target) | ✅ Built (Phase 2) |
 | **Local / per-instance explanations** | ✅ Built (Phase 1) |
-| **CLI(x)** — per-transaction consensus using **weighted Kendall's τ**, per the proposal's Equation (1) | Not built (a placeholder-τ *preview* exists; it is not the CLI) |
-| **Uncertainty gate** — a calibrated τ threshold that routes low-agreement cases to a human | Not built |
+| **CLI(x)** — per-transaction consensus using **weighted Kendall's τ**, per the proposal's Equation (1) | ✅ Built and evaluated (Phase 4); a valid top-driver agreement measure for the autoencoder family and DemandForecast TabNet, not for TradeFraud TabNet's variant or the 1,428-column LSTM |
+| **Uncertainty gate** — a calibrated τ threshold that routes low-agreement cases to a human | ✅ Built (Phase 4), quantile-calibrated with reviewer notes; faithfulness-linked and human-rated calibration still open; should be re-calibrated within the alert population |
 | **Formal faithfulness / stability / adversarial / latency benchmark suite** | Partly: latency, a first faithfulness check and Manifold-LIME stability are done; the synthetic ground-truth test, deletion/insertion curves and adversarial robustness are Phase 5 |
 | **Adapting LRD to TabNet / LSTM** (roadmap stretch goal) | Not attempted — no autoencoder bottleneck; those models get Adapted SHAP + Manifold-LIME |
 | **GNN family** | Blocked — the data has no client-to-client links (see below) |
@@ -607,8 +743,13 @@ Recorded honestly so they are fixed deliberately rather than discovered by a rev
     test on it is not meaningful.
 11. **Attribution outputs are not version-controlled.** `.gitignore` excludes `*.csv`, so
     `shap_global.csv` and friends exist only locally. They are our evidence and should be committed.
-12. **No automated tests.** The proposal requires ≥85% test coverage for the final SDK;
-    `src/eval_utils.py` has been exercised against synthetic data by hand but has no pytest suite yet.
+12. **Test coverage is partial.** `tests/` covers the explainers and the CLI math (52 tests), but not the
+    training scripts or data pipeline; the proposal's ≥85% coverage target applies to the Phase 6 SDK.
+13. **Model numbering skips Model 1 and Model 8** (models are 2–7, then 9 for the VAE), a leftover
+    from an earlier numbering scheme — harmless, left as-is rather than renumbering everything.
+14. **DemandForecast OOS is still split by brand (3 held-out brands), not by product.** The
+    calendar-month fix (item 3) did not change this — it remains the most likely explanation for
+    OOS R² being low and similar across every model (Section 4).
 15. **LRD is our formulation, not NodeX8's.** If NodeX8 has a specification it overrides this one. The
     primary λ=0.5 was fixed in advance but the ablation favours λ=0; settle it in Phase 5 on independent data.
 16. **The Phase 3 faithfulness checks are biased by their replacement operators** (see Section 5), so they
@@ -624,11 +765,15 @@ Recorded honestly so they are fixed deliberately rather than discovered by a rev
     vanilla's in 1,428-d; Gaussian-plus-rounding is only an approximation of the data's structure.
 20. **The explained models are weak detectors** (autoencoder/VAE AUC ≈ 0.5, error higher for normals than
     disputes in the sample). The explainers describe what the models do, not what fraud looks like.
-13. **Model numbering skips Model 1 and Model 8** (models are 2–7, then 9 for the VAE), a leftover
-    from an earlier numbering scheme — harmless, left as-is rather than renumbering everything.
-14. **DemandForecast OOS is still split by brand (3 held-out brands), not by product.** The
-    calendar-month fix (item 3) did not change this — it remains the most likely explanation for
-    OOS R² being low and similar across every model (Section 4).
+21. **The review gate is calibrated globally, but agreement depends strongly on the model score** (Phase 4
+    finding 3), so the global threshold mostly flags low-score clients. Re-calibrate within the alert
+    population once a model with a usable alert threshold exists.
+22. **Manifold-LIME cannot see low-count integer features** (integer snapping freezes them; Phase 4 finding
+    6). The Phase 3 primary is unchanged; candidate fix to test in Phase 5.
+23. **The CLI does not measure top-driver agreement for TradeFraud TabNet's variant (mask is 98% zeros) or the
+    1,428-column LSTM**; report it there only alongside top-k overlap.
+24. **No evidence yet that low CLI means a wrong explanation** (Phase 4 finding 7); the gate's threshold is
+    quantile-based by construction, i.e. it flags 10% of cases whatever their quality.
 
 ---
 
@@ -662,7 +807,7 @@ depends on clean inputs.
 | **1. Finish baseline explainability** | ✅ **Done** (Section 5). Local (per-instance) SHAP and LIME for high-risk/high-value, borderline and misclassified/high-error cases; DemandForecast cohort level (Brand/DayType/Decile); per-instance placeholder τ between SHAP and LIME; `feature_hierarchy.csv` for both datasets. |
 | **2. Advanced models** | ✅ **Done** (Section 5). Autoencoder rebuilt with signed-log1p preprocessing and a clean deterministic bottleneck (honest result: reconstruction fidelity improved 3×, AUC did not); VAE built with KL annealing (no posterior collapse); DemandForecast LSTM rebuilt with real 28-day sequences (sanity-checked). |
 | **3. The Tri-Explainer** | ✅ **Done** (Section 5). Adapted SHAP, Manifold-LIME and LRD implemented, tested (33 tests) and put through identical studies on five models: latency, baseline sensitivity, Manifold-LIME diagnostics, a first faithfulness check, and an agreement preview. Several honest negative/neutral results (Manifold-LIME's benefit is modest; LRD's λ unsettled; KernelSHAP's ">20 s" only reproduced in the extreme case). |
-| **4. CLI** | Weighted Kendall's τ, per-instance CLI per the proposal's Equation (1), aggregation by decile/segment/time, and calibration of the uncertainty gate. |
+| **4. CLI** | ✅ **Done** (Section 5). Weighted Kendall's τ (from scratch, verified against scipy), per-instance CLI per Equation (1), GREEN/AMBER/RED gate calibrated on validation and applied to four TradeFraud and three DemandForecast out-of-time periods, segment/decile/period tables with CIs, divergence notes for reviewers, `model_rashomon_index`. Honest findings: agreement is highest for high-risk clients on the autoencoders, the CLI is not a top-driver measure for every model, and no faithfulness link yet. |
 | **5. Benchmarks** | Faithfulness, monotonicity, stability, latency, memory. |
 | **6. SDK** | `claris_deep_xai`, PEP-8, ≥85% test coverage. |
 | **7. Paper & handover** | Report regenerated from result files; manuscript; final presentation. |

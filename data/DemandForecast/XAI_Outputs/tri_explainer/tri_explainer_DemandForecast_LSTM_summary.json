@@ -23,8 +23,8 @@
       "mean_abs_residual_over_mean_scalar": 0.0002836662461049855
     },
     "ig_kmeans": {
-      "mean_abs_residual": 0.0011361901415511966,
-      "mean_abs_residual_over_mean_scalar": 0.00022444424394052476
+      "mean_abs_residual": 0.0011361879296600819,
+      "mean_abs_residual_over_mean_scalar": 0.0002244438073830679
     },
     "ig_nn": {
       "mean_abs_residual": 0.00041633768705651164,
@@ -123,31 +123,31 @@
       "metric": "local_fidelity_r2_mean",
       "mode": "manifold",
       "group": "all",
-      "value": 0.7055
+      "value": 0.70845
     },
     {
       "metric": "local_fidelity_r2_median",
       "mode": "manifold",
       "group": "all",
-      "value": 0.73911
+      "value": 0.73971
     },
     {
       "metric": "local_fidelity_r2_mean",
       "mode": "manifold_noround",
       "group": "all",
-      "value": 0.98516
+      "value": 0.98522
     },
     {
       "metric": "local_fidelity_r2_median",
       "mode": "manifold_noround",
       "group": "all",
-      "value": 0.98857
+      "value": 0.98858
     },
     {
       "metric": "local_fidelity_r2_mean",
       "mode": "vanilla",
       "group": "all",
-      "value": 0.99751
+      "value": 0.99752
     },
     {
       "metric": "local_fidelity_r2_median",
@@ -159,37 +159,37 @@
       "metric": "mean_nn_distance_of_perturbations_to_real_rows",
       "mode": "manifold",
       "group": "diag_subset",
-      "value": 26.80349
+      "value": 26.83098
     },
     {
       "metric": "frac_perturbed_entries_clipped_to_range",
       "mode": "manifold",
       "group": "diag_subset",
-      "value": 0.32294
+      "value": 0.32229
     },
     {
       "metric": "mean_nn_distance_of_perturbations_to_real_rows",
       "mode": "manifold_noround",
       "group": "diag_subset",
-      "value": 26.67544
+      "value": 26.70223
     },
     {
       "metric": "frac_perturbed_entries_clipped_to_range",
       "mode": "manifold_noround",
       "group": "diag_subset",
-      "value": 0.32294
+      "value": 0.32229
     },
     {
       "metric": "mean_nn_distance_of_perturbations_to_real_rows",
       "mode": "vanilla",
       "group": "diag_subset",
-      "value": 27.05738
+      "value": 27.08138
     },
     {
       "metric": "frac_perturbed_entries_clipped_to_range",
       "mode": "vanilla",
       "group": "diag_subset",
-      "value": 0.32275
+      "value": 0.32211
     },
     {
       "metric": "mean_nn_distance_of_REAL_rows_to_other_real_rows",
@@ -201,19 +201,19 @@
       "metric": "stability_mean_pairwise_tau_over_4_seeds",
       "mode": "manifold",
       "group": "diag_subset",
-      "value": 0.70933
+      "value": 0.70928
     },
     {
       "metric": "stability_mean_pairwise_tau_over_4_seeds",
       "mode": "manifold_noround",
       "group": "diag_subset",
-      "value": 0.61967
+      "value": 0.62055
     },
     {
       "metric": "stability_mean_pairwise_tau_over_4_seeds",
       "mode": "vanilla",
       "group": "diag_subset",
-      "value": 0.73711
+      "value": 0.74057
     }
   ],
   "faithfulness_all": {
@@ -265,30 +265,30 @@
       },
       {
         "variant": "lime_manifold",
-        "mean_top_effect": 0.7594,
-        "mean_bottom_effect": 0.0124,
-        "top_over_bottom_ratio": 61.4223,
-        "top_over_random_ratio": 7.8196,
-        "frac_instances_top_gt_bottom": 0.9583,
-        "mean_top_reduction": 0.5562
+        "mean_top_effect": 0.766,
+        "mean_bottom_effect": 0.0098,
+        "top_over_bottom_ratio": 78.1927,
+        "top_over_random_ratio": 7.8874,
+        "frac_instances_top_gt_bottom": 0.975,
+        "mean_top_reduction": 0.5652
       },
       {
         "variant": "lime_manifold_noround",
-        "mean_top_effect": 1.4376,
+        "mean_top_effect": 1.4757,
         "mean_bottom_effect": 0.0013,
-        "top_over_bottom_ratio": 1105.0951,
-        "top_over_random_ratio": 14.8036,
+        "top_over_bottom_ratio": 1134.3624,
+        "top_over_random_ratio": 15.1956,
         "frac_instances_top_gt_bottom": 1.0,
-        "mean_top_reduction": 0.8574
+        "mean_top_reduction": 0.8094
       },
       {
         "variant": "lime_vanilla",
-        "mean_top_effect": 1.5567,
+        "mean_top_effect": 1.5441,
         "mean_bottom_effect": 0.0013,
-        "top_over_bottom_ratio": 1196.6614,
-        "top_over_random_ratio": 16.0302,
+        "top_over_bottom_ratio": 1187.0052,
+        "top_over_random_ratio": 15.9008,
         "frac_instances_top_gt_bottom": 1.0,
-        "mean_top_reduction": 0.858
+        "mean_top_reduction": 0.8987
       },
       {
         "variant": "RANDOM_ranking",
@@ -348,30 +348,30 @@
       },
       {
         "variant": "lime_manifold",
-        "mean_top_effect": 0.819,
-        "mean_bottom_effect": 0.0175,
-        "top_over_bottom_ratio": 46.7982,
-        "top_over_random_ratio": 12.2232,
+        "mean_top_effect": 0.8296,
+        "mean_bottom_effect": 0.0094,
+        "top_over_bottom_ratio": 88.625,
+        "top_over_random_ratio": 12.3813,
         "frac_instances_top_gt_bottom": 0.9667,
-        "mean_top_reduction": 0.6598
+        "mean_top_reduction": 0.6662
       },
       {
         "variant": "lime_manifold_noround",
-        "mean_top_effect": 1.3156,
+        "mean_top_effect": 1.353,
         "mean_bottom_effect": 0.0,
-        "top_over_bottom_ratio": 1315569139712.0,
-        "top_over_random_ratio": 19.6333,
+        "top_over_bottom_ratio": 1353002254336.0,
+        "top_over_random_ratio": 20.192,
         "frac_instances_top_gt_bottom": 1.0,
-        "mean_top_reduction": 1.1168
+        "mean_top_reduction": 1.074
       },
       {
         "variant": "lime_vanilla",
-        "mean_top_effect": 1.4912,
+        "mean_top_effect": 1.4744,
         "mean_bottom_effect": 0.0,
-        "top_over_bottom_ratio": 1491224625152.0,
-        "top_over_random_ratio": 22.2548,
+        "top_over_bottom_ratio": 1474403106816.0,
+        "top_over_random_ratio": 22.0038,
         "frac_instances_top_gt_bottom": 1.0,
-        "mean_top_reduction": 1.1277
+        "mean_top_reduction": 1.1468
       },
       {
         "variant": "RANDOM_ranking",
@@ -385,70 +385,70 @@
     ]
   },
   "agreement_preview_placeholder_tau": {
-    "AdaptedSHAP_vs_ManifoldLIME__all": 0.41346890378864304,
-    "AdaptedSHAP_vs_ManifoldLIME__negatives": 0.41346890378864304
+    "AdaptedSHAP_vs_ManifoldLIME__all": 0.4151288258797972,
+    "AdaptedSHAP_vs_ManifoldLIME__negatives": 0.4151288258797972
   },
   "latency_ms": [
     {
       "explainer": "ig_zeros (50 steps)",
       "n": 30,
-      "p50_ms": 15.035,
-      "p95_ms": 15.77,
-      "mean_ms": 15.056,
-      "max_ms": 15.953
+      "p50_ms": 14.294,
+      "p95_ms": 14.94,
+      "mean_ms": 14.22,
+      "max_ms": 15.334
     },
     {
       "explainer": "ig_kmeans (10 baselines x 50 steps)",
       "n": 30,
-      "p50_ms": 151.446,
-      "p95_ms": 158.295,
-      "mean_ms": 152.593,
-      "max_ms": 177.448
+      "p50_ms": 140.124,
+      "p95_ms": 143.351,
+      "mean_ms": 140.386,
+      "max_ms": 145.626
     },
     {
       "explainer": "gradient_shap (100 baselines, 50 samples)",
       "n": 30,
-      "p50_ms": 14.208,
-      "p95_ms": 15.343,
-      "mean_ms": 14.137,
-      "max_ms": 15.789
+      "p50_ms": 12.806,
+      "p95_ms": 13.431,
+      "mean_ms": 12.859,
+      "max_ms": 13.67
     },
     {
       "explainer": "manifold_lime (1500 samples)",
       "n": 30,
-      "p50_ms": 367.191,
-      "p95_ms": 391.352,
-      "mean_ms": 371.64,
-      "max_ms": 535.354
+      "p50_ms": 362.522,
+      "p95_ms": 401.325,
+      "mean_ms": 366.9,
+      "max_ms": 453.285
     },
     {
       "explainer": "vanilla_lime (1500 samples)",
       "n": 30,
-      "p50_ms": 349.205,
-      "p95_ms": 381.825,
-      "mean_ms": 348.312,
-      "max_ms": 419.122
+      "p50_ms": 335.687,
+      "p95_ms": 349.107,
+      "mean_ms": 335.83,
+      "max_ms": 358.698
     },
     {
       "explainer": "KernelSHAP reference (10 k-means background, default nsamples)",
       "n": 2,
-      "p50_ms": 2375.317,
-      "p95_ms": 2436.048,
-      "mean_ms": 2375.317,
-      "max_ms": 2436.048
+      "p50_ms": 2340.378,
+      "p95_ms": 2404.18,
+      "mean_ms": 2340.378,
+      "max_ms": 2404.18
     },
     {
       "explainer": "KernelSHAP reference (100-row background, default nsamples)",
       "n": 1,
-      "p50_ms": 21067.65,
-      "p95_ms": 21067.65,
-      "mean_ms": 21067.65,
-      "max_ms": 21067.65
+      "p50_ms": 20070.98,
+      "p95_ms": 20070.98,
+      "mean_ms": 20070.98,
+      "max_ms": 20070.98
     }
   ],
-  "runtime_seconds": 318.2,
+  "runtime_seconds": 305.5,
   "agreement_preview_feature_level_placeholder_tau": {
-    "AdaptedSHAP_vs_ManifoldLIME__feature_level": 0.34136469361801275
+    "AdaptedSHAP_vs_ManifoldLIME__feature_level": 0.341846059298697
   },
   "mean_abs_attribution_by_timestep_t-27_to_t-0": {
     "ig_kmeans": [
@@ -482,34 +482,34 @@
       5.772630214691162
     ],
     "lime_manifold": [
-      0.16904,
-      0.16397,
-      0.15712,
-      0.15173,
-      0.15202,
-      0.14924,
-      0.14838,
-      0.15151,
-      0.14652,
-      0.1451,
-      0.15091,
-      0.15023,
-      0.14705,
-      0.15794,
-      0.14805,
-      0.15019,
-      0.15023,
-      0.15071,
-      0.15132,
-      0.15318,
-      0.16132,
-      0.16529,
-      0.16927,
-      0.1743,
-      0.18334,
-      0.21407,
-      0.2587,
-      0.2942
+      0.17131,
+      0.16638,
+      0.15901,
+      0.15348,
+      0.15438,
+      0.15227,
+      0.15046,
+      0.15377,
+      0.14801,
+      0.14702,
+      0.15272,
+      0.15238,
+      0.14818,
+      0.15871,
+      0.1494,
+      0.15102,
+      0.15092,
+      0.15146,
+      0.15249,
+      0.15391,
+      0.16403,
+      0.16634,
+      0.17026,
+      0.17609,
+      0.18425,
+      0.21577,
+      0.26068,
+      0.29744
     ]
   },
   "clamped_prediction_fraction": 0.0

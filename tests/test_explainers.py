@@ -447,3 +447,23 @@ def test_replacement_effect_zero_mode_repairs_flagged_features():
     res = replacement_effect(f, U, U ** 2, donors=None, k=2)
     assert res["top_reduction"].mean() > 0.9 * (U[:, :2] ** 2).sum(1).mean()      # zeroing the signal features removes ~all of f
     assert np.mean(res["top_effect"] > res["bottom_effect"]) > 0.95
+
+
+def test_manifold_lime_never_clips_the_instance_itself():
+    """Regression: an instance outside the reference range (e.g. year=2013 vs a 2012
+    reference) used to have every perturbation clipped back into range, so the
+    kernel weights underflowed to zero. Perturbations must stay centred on x."""
+    rng = np.random.RandomState(0)
+    U = rng.normal(size=(500, 4))
+    ml = ManifoldLIME(lambda Z: Z @ np.array([1.0, -2.0, 0.5, 3.0]), U, scale=0.3, n_samples=800)
+    x = U[0].copy(); x[3] = U[:, 3].max() + 4.0          # far outside the reference range
+    Z, _ = ml.perturb(x, "manifold", np.random.RandomState(1))
+    assert abs(np.median(Z[:, 3]) - x[3]) < 0.1             # centred on x, not dragged into range
+    assert Z[:, 3].max() <= x[3] + 1e-12                    # still clipped on the far side
+    res = ml.explain(x, "manifold", seed=0)
+    assert res.r2 > 0.9 and res.mean_weight > 0
+    # an in-range instance is unaffected by the widening
+    x_in = U[1]
+    Z_old = np.clip(x_in + 0.3 * (np.random.RandomState(2).standard_normal((800, 4)) @ ml.L.T), ml.lo, ml.hi)
+    Z_new, _ = ml.perturb(x_in, "manifold", np.random.RandomState(2))
+    assert np.allclose(Z_old, Z_new)
