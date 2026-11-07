@@ -34,3 +34,6 @@ env/
 # Phase 4 caches and run logs
 *.npz
 run_log*.txt
+
+# EDA charts are embedded in EDA_SUMMARY.md, so track them
+!data/*/EDA_Outputs/plots/*.png

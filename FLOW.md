@@ -263,6 +263,8 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `validation.py` | Feature-replacement faithfulness check, plausibility distance, agreement preview |
 | `studies.py` | One driver that puts *every* model through identical studies (attributions, background sensitivity, LIME diagnostics, faithfulness, latency) |
 
+`src/eda_utils.py` — helpers shared by the two EDA scripts (feature summary, single-feature AUC, PSI drift, correlated pairs).
+
 **Phase 4 — the Consensus Logic Index**
 
 | File | What it does |
@@ -305,6 +307,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` from `Data/variable_dictionary.csv` |
 | `run_tri_explainer_ae_vae.py` | Phase 3: Adapted SHAP + Manifold-LIME + LRD on the autoencoder and VAE (251 clients) |
 | `run_tri_explainer_tabnet.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet (LRD not applicable), plus TabNet's native masks |
+| `run_eda.py` | Exploratory data analysis: split overview, feature shape (missing / zeros / skew), dispute rate by segment, single-feature signal, redundancy, drift. Writes `EDA_Outputs/` (`EDA_SUMMARY.md` is the readable report) |
 | `run_consensus_cli.py` | Phase 4: per-client CLI and review gate for the AE, VAE and TabNet; calibrates on Validation, explains and scores four out-of-time periods; writes `XAI_Outputs/consensus/` |
 | `run_baseline_lime.py` | The same three levels using LIME |
 | `extract_tabnet_masks.py` | Pulls out TabNet's *built-in* attention masks. **Note:** this is a signal the model gives for free, not one of the three explainers the research requires |
@@ -323,6 +326,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` (hand-built groups — no variable dictionary exists for this dataset) |
 | `cohort_utils.py` | Shared `assign_day_type()` used by both the SHAP and LIME scripts |
 | `run_tri_explainer_tabnet_lstm.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet and the 28-day LSTM |
+| `run_eda.py` | Exploratory data analysis: target distribution, brands and products, calendar / promotion effects, lag correlations, redundancy, drift. Writes `EDA_Outputs/` (`EDA_SUMMARY.md` is the readable report) |
 | `run_consensus_cli.py` | Phase 4: CLI variant for TabNet (K=3 with its native mask) and two-explainer agreement for the LSTM, on OOS and the three OOT months |
 | `extract_tabnet_masks.py` | TabNet's native masks |
 
