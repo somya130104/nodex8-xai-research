@@ -65,6 +65,7 @@ class LimeResult:
     r2: float                    # weighted R^2 of the local surrogate (fidelity)
     mean_weight: float
     frac_clipped: float          # share of perturbed entries that hit the realistic range limits
+    kernel_shifted: bool = False  # True if every kernel weight underflowed and the shifted (relative) kernel was used
 
 
 class ManifoldLIME:
@@ -88,6 +89,7 @@ class ManifoldLIME:
         self.kernel_width_factor = kernel_width_factor
         self.snap = snap
         self.snap_stochastic = snap_stochastic      # callable (Z, rng) -> Z, for mode 'manifold_stochround'
+        self.n_kernel_shifted = 0                   # how many explanations needed the underflow fallback (see explain)
 
         lw = LedoitWolf().fit(U)
         self.shrinkage = float(lw.shrinkage_)
@@ -120,7 +122,7 @@ class ManifoldLIME:
             Z = np.asarray(self.snap_stochastic(Z, rng), dtype=np.float64)
         return Z, frac_clipped
 
-    def weights(self, x, Z, mode: str, scale=None):
+    def weights(self, x, Z, mode: str, scale=None, shift: bool = False):
         s = self.scale if scale is None else scale
         d = Z - np.asarray(x, dtype=np.float64).ravel()
         if mode in ("manifold", "manifold_noround", "manifold_stochround"):
@@ -129,6 +131,11 @@ class ManifoldLIME:
         else:
             d2 = ((d / self.std) ** 2).sum(axis=1)
             width = 0.75 * np.sqrt(self.p)          # LIME's default kernel width
+        if shift:
+            # fallback path only: distances relative to the nearest copy, with the bandwidth widened to at least the
+            # median relative distance so that a useful number of copies keep non-negligible weight
+            d2 = d2 - d2.min()
+            width = max(width, float(np.sqrt(np.median(d2))))
         return np.sqrt(np.exp(-d2 / width ** 2))    # LIME's kernel form
 
     # -- explanation ----------------------------------------------------
@@ -140,8 +147,16 @@ class ManifoldLIME:
         rng = np.random.RandomState(seed)
         Z, frac_clipped = self.perturb(x, mode, rng, scale=s)
         w = self.weights(x, Z, mode, scale=s)
+        shifted = False
         if not np.any(w > 0):
-            raise ValueError("all kernel weights underflowed to zero — perturbations are far from x")
+            # Every copy is so far from x (in Mahalanobis distance) that exp(-d^2/width^2) underflows to 0, which can
+            # happen in very high dimension or when rounding moves a binary flag by a whole unit. Use the SAME kernel
+            # measured relative to the nearest copy (subtract the smallest d^2): identical up to a constant factor, and
+            # numerically stable, with the bandwidth widened to the spread of the copies (see weights). Applied ONLY when
+            # all weights are zero, so every other explanation is unchanged.
+            w = self.weights(x, Z, mode, scale=s, shift=True)
+            shifted = True
+            self.n_kernel_shifted += 1
         y = np.asarray(self.f(Z.astype(np.float32)), dtype=np.float64).ravel()
 
         Xfit = (Z - x) / s                     # unit-spread inputs so alpha is meaningful
@@ -150,7 +165,7 @@ class ManifoldLIME:
         coef = ridge.coef_ / s                 # back to "per unit of the feature"
         r2 = float(r2_score(y, ridge.predict(Xfit), sample_weight=w))
         return LimeResult(attribution=coef * (x - self.ref), coef=coef, r2=r2,
-                          mean_weight=float(w.mean()), frac_clipped=frac_clipped)
+                          mean_weight=float(w.mean()), frac_clipped=frac_clipped, kernel_shifted=shifted)
 
     def explain_many(self, X, mode: str = "manifold", seed: int = 0):
         """Explain each row of X; returns (attributions (n,p), r2 (n,))."""

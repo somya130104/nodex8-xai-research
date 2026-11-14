@@ -1,0 +1,109 @@
+{
+ "stage": "planted",
+ "model": "TradeFraud",
+ "settings": {
+  "reps": 3,
+  "n_eval": 200
+ },
+ "rows": [
+  {
+   "dataset": "TradeFraud",
+   "variant": "AbsValue",
+   "precision_at_3": 0.035,
+   "min_over_reps": 0.01167,
+   "max_over_reps": 0.04667,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "AdaptedSHAP",
+   "precision_at_3": 0.60556,
+   "min_over_reps": 0.44333,
+   "max_over_reps": 0.72833,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "AdaptedSHAP_zero",
+   "precision_at_3": 0.40556,
+   "min_over_reps": 0.33833,
+   "max_over_reps": 0.53,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "GradientSHAP",
+   "precision_at_3": 0.67667,
+   "min_over_reps": 0.62,
+   "max_over_reps": 0.71167,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "KernelSHAP",
+   "precision_at_3": 0.51222,
+   "min_over_reps": 0.42833,
+   "max_over_reps": 0.61667,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "ManifoldLIME",
+   "precision_at_3": 0.30556,
+   "min_over_reps": 0.25667,
+   "max_over_reps": 0.33667,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "ManifoldLIME_stochround",
+   "precision_at_3": 0.24833,
+   "min_over_reps": 0.17333,
+   "max_over_reps": 0.28833,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "Random",
+   "precision_at_3": 0.015,
+   "min_over_reps": 0.01333,
+   "max_over_reps": 0.01667,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  },
+  {
+   "dataset": "TradeFraud",
+   "variant": "VanillaLIME",
+   "precision_at_3": 0.34333,
+   "min_over_reps": 0.33333,
+   "max_over_reps": 0.355,
+   "chance": 0.01107,
+   "model_r2_mean": 0.98829,
+   "planted_importance_share_mean": 0.75922,
+   "twin_corr_threshold": 0.8
+  }
+ ]
+}

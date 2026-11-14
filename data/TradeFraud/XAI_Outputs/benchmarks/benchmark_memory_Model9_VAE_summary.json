@@ -1,0 +1,109 @@
+{
+ "stage": "memory",
+ "model": "Model9_VAE",
+ "settings": {
+  "method": "fresh process per explainer, 3 repeats, median peak RSS growth, 2 ms sampling"
+ },
+ "rows": [
+  {
+   "model": "Model9_VAE",
+   "explainer": "AdaptedSHAP",
+   "n": 30,
+   "baseline_rss_mb": 1404.0105,
+   "peak_rss_growth_mb": 16.7936,
+   "peak_rss_growth_min_mb": 15.64672,
+   "peak_rss_growth_max_mb": 18.56307,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 30,
+   "baseline_rss_mb": 1480.94976,
+   "peak_rss_growth_mb": 17.6128,
+   "peak_rss_growth_min_mb": 15.0569,
+   "peak_rss_growth_max_mb": 18.13709,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "GradientSHAP",
+   "n": 30,
+   "baseline_rss_mb": 1446.54336,
+   "peak_rss_growth_mb": 17.67834,
+   "peak_rss_growth_min_mb": 15.82694,
+   "peak_rss_growth_max_mb": 18.46477,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "ManifoldLIME",
+   "n": 30,
+   "baseline_rss_mb": 1173.8153,
+   "peak_rss_growth_mb": 107.26605,
+   "peak_rss_growth_min_mb": 67.09248,
+   "peak_rss_growth_max_mb": 146.16166,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 30,
+   "baseline_rss_mb": 1483.45651,
+   "peak_rss_growth_mb": 57.62253,
+   "peak_rss_growth_min_mb": 57.0327,
+   "peak_rss_growth_max_mb": 69.1241,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "VanillaLIME",
+   "n": 30,
+   "baseline_rss_mb": 1502.90432,
+   "peak_rss_growth_mb": 40.92723,
+   "peak_rss_growth_min_mb": 36.24141,
+   "peak_rss_growth_max_mb": 48.52941,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "LRD_lam0",
+   "n": 30,
+   "baseline_rss_mb": 1431.97798,
+   "peak_rss_growth_mb": 76.33306,
+   "peak_rss_growth_min_mb": 71.12294,
+   "peak_rss_growth_max_mb": 77.85677,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "LRD_lam0.5",
+   "n": 30,
+   "baseline_rss_mb": 1511.45677,
+   "peak_rss_growth_mb": 70.17267,
+   "peak_rss_growth_min_mb": 62.6688,
+   "peak_rss_growth_max_mb": 76.4969,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "LRD_lam1",
+   "n": 30,
+   "baseline_rss_mb": 1332.08474,
+   "peak_rss_growth_mb": 70.77888,
+   "peak_rss_growth_min_mb": 70.43482,
+   "peak_rss_growth_max_mb": 76.70989,
+   "repeats": 3
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "KernelSHAP",
+   "n": 30,
+   "baseline_rss_mb": 1447.936,
+   "peak_rss_growth_mb": 113.00045,
+   "peak_rss_growth_min_mb": 102.58022,
+   "peak_rss_growth_max_mb": 134.33242,
+   "repeats": 3
+  }
+ ]
+}

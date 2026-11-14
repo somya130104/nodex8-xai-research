@@ -1,0 +1,109 @@
+{
+ "stage": "planted",
+ "model": "DemandForecast",
+ "settings": {
+  "reps": 3,
+  "n_eval": 200
+ },
+ "rows": [
+  {
+   "dataset": "DemandForecast",
+   "variant": "AbsValue",
+   "precision_at_3": 0.04778,
+   "min_over_reps": 0.04167,
+   "max_over_reps": 0.05667,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "AdaptedSHAP",
+   "precision_at_3": 0.70722,
+   "min_over_reps": 0.62667,
+   "max_over_reps": 0.79,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "AdaptedSHAP_zero",
+   "precision_at_3": 0.67444,
+   "min_over_reps": 0.54667,
+   "max_over_reps": 0.78667,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "GradientSHAP",
+   "precision_at_3": 0.68944,
+   "min_over_reps": 0.63333,
+   "max_over_reps": 0.75833,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "KernelSHAP",
+   "precision_at_3": 0.67111,
+   "min_over_reps": 0.60333,
+   "max_over_reps": 0.72833,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "ManifoldLIME",
+   "precision_at_3": 0.70833,
+   "min_over_reps": 0.59833,
+   "max_over_reps": 0.84333,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "ManifoldLIME_stochround",
+   "precision_at_3": 0.68556,
+   "min_over_reps": 0.58333,
+   "max_over_reps": 0.83333,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "Random",
+   "precision_at_3": 0.07222,
+   "min_over_reps": 0.07,
+   "max_over_reps": 0.075,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  },
+  {
+   "dataset": "DemandForecast",
+   "variant": "VanillaLIME",
+   "precision_at_3": 0.66667,
+   "min_over_reps": 0.53,
+   "max_over_reps": 0.79,
+   "chance": 0.05882,
+   "model_r2_mean": 0.99319,
+   "planted_importance_share_mean": 0.81268,
+   "twin_corr_threshold": 0.9
+  }
+ ]
+}

@@ -1,0 +1,109 @@
+{
+ "stage": "memory",
+ "model": "Model4_Autoencoder",
+ "settings": {
+  "method": "fresh process per explainer, 3 repeats, median peak RSS growth, 2 ms sampling"
+ },
+ "rows": [
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "AdaptedSHAP",
+   "n": 30,
+   "baseline_rss_mb": 1393.32813,
+   "peak_rss_growth_mb": 17.67834,
+   "peak_rss_growth_min_mb": 17.44896,
+   "peak_rss_growth_max_mb": 18.00602,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 30,
+   "baseline_rss_mb": 1276.88704,
+   "peak_rss_growth_mb": 14.86029,
+   "peak_rss_growth_min_mb": 14.4343,
+   "peak_rss_growth_max_mb": 16.49869,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "GradientSHAP",
+   "n": 30,
+   "baseline_rss_mb": 1397.99757,
+   "peak_rss_growth_mb": 12.35354,
+   "peak_rss_growth_min_mb": 12.02586,
+   "peak_rss_growth_max_mb": 18.3337,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "ManifoldLIME",
+   "n": 30,
+   "baseline_rss_mb": 1393.08237,
+   "peak_rss_growth_mb": 111.13267,
+   "peak_rss_growth_min_mb": 55.32877,
+   "peak_rss_growth_max_mb": 118.86592,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 30,
+   "baseline_rss_mb": 1360.06861,
+   "peak_rss_growth_mb": 94.6176,
+   "peak_rss_growth_min_mb": 79.52794,
+   "peak_rss_growth_max_mb": 130.3511,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "VanillaLIME",
+   "n": 30,
+   "baseline_rss_mb": 1363.77139,
+   "peak_rss_growth_mb": 34.0951,
+   "peak_rss_growth_min_mb": 28.04941,
+   "peak_rss_growth_max_mb": 57.96659,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "LRD_lam0",
+   "n": 30,
+   "baseline_rss_mb": 1610.10483,
+   "peak_rss_growth_mb": 74.10483,
+   "peak_rss_growth_min_mb": 53.80506,
+   "peak_rss_growth_max_mb": 75.15341,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "LRD_lam0.5",
+   "n": 30,
+   "baseline_rss_mb": 1291.28858,
+   "peak_rss_growth_mb": 75.21894,
+   "peak_rss_growth_min_mb": 74.79296,
+   "peak_rss_growth_max_mb": 81.98554,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "LRD_lam1",
+   "n": 30,
+   "baseline_rss_mb": 1411.08838,
+   "peak_rss_growth_mb": 72.76134,
+   "peak_rss_growth_min_mb": 69.59923,
+   "peak_rss_growth_max_mb": 73.07264,
+   "repeats": 3
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "KernelSHAP",
+   "n": 30,
+   "baseline_rss_mb": 1388.19994,
+   "peak_rss_growth_mb": 100.36838,
+   "peak_rss_growth_min_mb": 93.11027,
+   "peak_rss_growth_max_mb": 108.41293,
+   "repeats": 3
+  }
+ ]
+}

@@ -1,0 +1,131 @@
+{
+ "stage": "runtime",
+ "model": "Model4_Autoencoder",
+ "settings": {
+  "n": 1000,
+  "n_kernelshap": 30,
+  "hardware_note": "single process, CPU, nothing else running"
+ },
+ "rows": [
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "AdaptedSHAP",
+   "n": 1000,
+   "p50_ms": 25.86725,
+   "p95_ms": 26.70613,
+   "mean_ms": 26.12978,
+   "max_ms": 70.91825,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 1000,
+   "p50_ms": 2.55706,
+   "p95_ms": 2.74802,
+   "mean_ms": 2.58418,
+   "max_ms": 3.36825,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "GradientSHAP",
+   "n": 1000,
+   "p50_ms": 1.21929,
+   "p95_ms": 1.39645,
+   "mean_ms": 1.23873,
+   "max_ms": 1.88237,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "ManifoldLIME",
+   "n": 1000,
+   "p50_ms": 67.95879,
+   "p95_ms": 92.48803,
+   "mean_ms": 70.66964,
+   "max_ms": 165.37229,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 1000,
+   "p50_ms": 72.27644,
+   "p95_ms": 98.27795,
+   "mean_ms": 75.52609,
+   "max_ms": 192.67421,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "VanillaLIME",
+   "n": 1000,
+   "p50_ms": 26.38608,
+   "p95_ms": 31.0429,
+   "mean_ms": 27.06733,
+   "max_ms": 61.01496,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "LRD_lam0",
+   "n": 1000,
+   "p50_ms": 1.19329,
+   "p95_ms": 1.3524,
+   "mean_ms": 1.20659,
+   "max_ms": 1.88083,
+   "meets_LRD_target_50ms": 1.0,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "LRD_lam0.5",
+   "n": 1000,
+   "p50_ms": 1.18829,
+   "p95_ms": 1.34609,
+   "mean_ms": 1.20246,
+   "max_ms": 1.80417,
+   "meets_LRD_target_50ms": 1.0,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "LRD_lam1",
+   "n": 1000,
+   "p50_ms": 1.19817,
+   "p95_ms": 1.46169,
+   "mean_ms": 1.25008,
+   "max_ms": 14.95092,
+   "meets_LRD_target_50ms": 1.0,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model4_Autoencoder",
+   "explainer": "KernelSHAP",
+   "n": 30,
+   "p50_ms": 90.63971,
+   "p95_ms": 94.71706,
+   "mean_ms": 91.21215,
+   "max_ms": 98.22783,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  }
+ ]
+}

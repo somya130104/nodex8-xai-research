@@ -1,0 +1,68 @@
+{
+ "note": "post-hoc, not pre-registered",
+ "rows": [
+  {
+   "mode": "independent",
+   "scale": 0.3,
+   "precision_at_3": 0.5186666666666666,
+   "ci_lo": 0.49398333333333333,
+   "ci_hi": 0.5426666666666666
+  },
+  {
+   "mode": "manifold",
+   "scale": 0.3,
+   "precision_at_3": 0.4273333333333333,
+   "ci_lo": 0.40264999999999995,
+   "ci_hi": 0.4513333333333333
+  },
+  {
+   "mode": "manifold_noround",
+   "scale": 0.3,
+   "precision_at_3": 0.32,
+   "ci_lo": 0.298,
+   "ci_hi": 0.3413333333333334
+  },
+  {
+   "mode": "manifold_stochround",
+   "scale": 0.3,
+   "precision_at_3": 0.36866666666666664,
+   "ci_lo": 0.34264999999999995,
+   "ci_hi": 0.39401666666666657
+  },
+  {
+   "mode": "independent",
+   "scale": 0.1,
+   "precision_at_3": 0.522,
+   "ci_lo": 0.49666666666666665,
+   "ci_hi": 0.546
+  },
+  {
+   "mode": "manifold",
+   "scale": 0.1,
+   "precision_at_3": 0.4446666666666667,
+   "ci_lo": 0.4193333333333334,
+   "ci_hi": 0.4699999999999999
+  },
+  {
+   "mode": "manifold_noround",
+   "scale": 0.1,
+   "precision_at_3": 0.388,
+   "ci_lo": 0.36466666666666664,
+   "ci_hi": 0.41133333333333333
+  },
+  {
+   "mode": "independent",
+   "scale": 1.0,
+   "precision_at_3": 0.45999999999999996,
+   "ci_lo": 0.4359833333333333,
+   "ci_hi": 0.48266666666666663
+  },
+  {
+   "mode": "manifold_noround",
+   "scale": 1.0,
+   "precision_at_3": 0.30133333333333334,
+   "ci_lo": 0.2793333333333333,
+   "ci_hi": 0.324
+  }
+ ]
+}

@@ -1,0 +1,73 @@
+{
+ "note": "additional analysis; hypothesis fixed before running",
+ "models": {
+  "Model4_Autoencoder": {
+   "n": 500,
+   "spearman_CLI_vs_consensus_precision": 0.004630027806397074,
+   "p_value": 0.9177470991272243,
+   "consensus_precision_overall": 0.43666666666666665,
+   "consensus_precision_by_CLI_quartile": {
+    "Q1 lowest CLI": 0.37066666666666664,
+    "Q2": 0.488,
+    "Q3": 0.552,
+    "Q4 highest CLI": 0.336
+   },
+   "mean_CLI": 0.4153466228077494,
+   "median_CLI": 0.4056663100781362,
+   "flag_counts": {
+    "RED": 6,
+    "AMBER": 13,
+    "GREEN": 481
+   },
+   "consensus_precision_by_flag": {
+    "RED": 0.1111111111111111,
+    "AMBER": 0.25641025641025644,
+    "GREEN": 0.4455994455994456
+   },
+   "individual_precision": {
+    "AdaptedSHAP": 0.4,
+    "ManifoldLIME": 0.4273333333333333,
+    "LRD_lam0.5": 0.5286666666666666
+   },
+   "spearman_CLI_vs_best_individual_pair_tau": null,
+   "consensus_precision_ci95": [
+    0.41333333333333333,
+    0.4593333333333333
+   ]
+  },
+  "Model9_VAE": {
+   "n": 500,
+   "spearman_CLI_vs_consensus_precision": 0.0006209899210566078,
+   "p_value": 0.9889488513521667,
+   "consensus_precision_overall": 0.4526666666666666,
+   "consensus_precision_by_CLI_quartile": {
+    "Q1 lowest CLI": 0.3866666666666666,
+    "Q2": 0.5173333333333333,
+    "Q3": 0.52,
+    "Q4 highest CLI": 0.3866666666666666
+   },
+   "mean_CLI": 0.4137593961567097,
+   "median_CLI": 0.39708218811393226,
+   "flag_counts": {
+    "RED": 6,
+    "AMBER": 14,
+    "GREEN": 480
+   },
+   "consensus_precision_by_flag": {
+    "RED": 0.16666666666666666,
+    "AMBER": 0.2380952380952381,
+    "GREEN": 0.4625
+   },
+   "individual_precision": {
+    "AdaptedSHAP": 0.41666666666666663,
+    "ManifoldLIME": 0.43,
+    "LRD_lam0.5": 0.5393333333333332
+   },
+   "spearman_CLI_vs_best_individual_pair_tau": null,
+   "consensus_precision_ci95": [
+    0.4273333333333333,
+    0.476
+   ]
+  }
+ }
+}

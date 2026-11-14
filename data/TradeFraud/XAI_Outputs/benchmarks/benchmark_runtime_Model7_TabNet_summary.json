@@ -1,0 +1,95 @@
+{
+ "stage": "runtime",
+ "model": "Model7_TabNet",
+ "settings": {
+  "n": 1000,
+  "n_kernelshap": 30,
+  "hardware_note": "single process, CPU, nothing else running"
+ },
+ "rows": [
+  {
+   "model": "Model7_TabNet",
+   "explainer": "AdaptedSHAP",
+   "n": 1000,
+   "p50_ms": 134.06346,
+   "p95_ms": 162.78923,
+   "mean_ms": 138.34814,
+   "max_ms": 342.51533,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "Model7_TabNet",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 1000,
+   "p50_ms": 14.54931,
+   "p95_ms": 18.59759,
+   "mean_ms": 15.97637,
+   "max_ms": 372.32342,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model7_TabNet",
+   "explainer": "GradientSHAP",
+   "n": 1000,
+   "p50_ms": 9.56296,
+   "p95_ms": 12.17784,
+   "mean_ms": 9.93269,
+   "max_ms": 31.02067,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model7_TabNet",
+   "explainer": "ManifoldLIME",
+   "n": 1000,
+   "p50_ms": 195.14746,
+   "p95_ms": 277.58312,
+   "mean_ms": 200.99521,
+   "max_ms": 399.93492,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "Model7_TabNet",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 1000,
+   "p50_ms": 211.6026,
+   "p95_ms": 323.14589,
+   "mean_ms": 227.7024,
+   "max_ms": 758.09283,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "Model7_TabNet",
+   "explainer": "VanillaLIME",
+   "n": 1000,
+   "p50_ms": 155.4564,
+   "p95_ms": 188.10913,
+   "mean_ms": 159.94171,
+   "max_ms": 387.19033,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "Model7_TabNet",
+   "explainer": "NativeMask",
+   "n": 1000,
+   "p50_ms": 9.66696,
+   "p95_ms": 10.22541,
+   "mean_ms": 9.95436,
+   "max_ms": 87.33621,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  }
+ ]
+}

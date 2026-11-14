@@ -1,0 +1,131 @@
+{
+ "stage": "runtime",
+ "model": "Model9_VAE",
+ "settings": {
+  "n": 1000,
+  "n_kernelshap": 30,
+  "hardware_note": "single process, CPU, nothing else running"
+ },
+ "rows": [
+  {
+   "model": "Model9_VAE",
+   "explainer": "AdaptedSHAP",
+   "n": 1000,
+   "p50_ms": 26.6195,
+   "p95_ms": 33.78074,
+   "mean_ms": 27.80656,
+   "max_ms": 102.47079,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 1000,
+   "p50_ms": 2.6275,
+   "p95_ms": 3.44312,
+   "mean_ms": 2.76967,
+   "max_ms": 6.58175,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "GradientSHAP",
+   "n": 1000,
+   "p50_ms": 1.50596,
+   "p95_ms": 2.41821,
+   "mean_ms": 1.62355,
+   "max_ms": 12.65058,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "ManifoldLIME",
+   "n": 1000,
+   "p50_ms": 81.94881,
+   "p95_ms": 131.45911,
+   "mean_ms": 91.08632,
+   "max_ms": 443.93762,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 1000,
+   "p50_ms": 89.75221,
+   "p95_ms": 137.47748,
+   "mean_ms": 96.20274,
+   "max_ms": 259.15642,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "VanillaLIME",
+   "n": 1000,
+   "p50_ms": 34.33446,
+   "p95_ms": 54.40511,
+   "mean_ms": 38.34699,
+   "max_ms": 237.83029,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "LRD_lam0",
+   "n": 1000,
+   "p50_ms": 1.35858,
+   "p95_ms": 1.50358,
+   "mean_ms": 1.37422,
+   "max_ms": 2.19112,
+   "meets_LRD_target_50ms": 1.0,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "LRD_lam0.5",
+   "n": 1000,
+   "p50_ms": 1.3629,
+   "p95_ms": 1.61961,
+   "mean_ms": 1.39446,
+   "max_ms": 2.17471,
+   "meets_LRD_target_50ms": 1.0,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "LRD_lam1",
+   "n": 1000,
+   "p50_ms": 1.35115,
+   "p95_ms": 1.61326,
+   "mean_ms": 1.38098,
+   "max_ms": 2.03937,
+   "meets_LRD_target_50ms": 1.0,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "Model9_VAE",
+   "explainer": "KernelSHAP",
+   "n": 30,
+   "p50_ms": 116.97473,
+   "p95_ms": 124.32753,
+   "mean_ms": 117.32142,
+   "max_ms": 128.30904,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  }
+ ]
+}

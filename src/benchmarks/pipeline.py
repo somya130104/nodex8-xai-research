@@ -234,22 +234,33 @@ def run_robustness(b: ModelBundle, out_dir, seed=0):
 
 
 # ============================================================================ 5.4 runtime and memory
-def run_runtime(b: ModelBundle, out_dir, seed=0):
+def run_runtime(b: ModelBundle, out_dir, seed=0, only=None):
+    """only: re-measure just these explainers and MERGE them into the existing table (used to redo a contaminated row)."""
     t0 = time.time()
     S = b.suite
     rs = np.random.RandomState(seed)
     pool = b.U_runtime
     names = S.available + (["KernelSHAP"] if b.run_kernelshap else [])
+    if only:
+        names = [v for v in names if v in only]
     rows = []
     for v in names:
         n = b.n_kernel_runtime if v == "KernelSHAP" else b.n_runtime
         idx = rs.choice(len(pool), n, replace=len(pool) < n)
         rows_u = pool[idx]
         call = lambda i, v=v, rows_u=rows_u: S.explain(v, rows_u[i:i + 1], seed=i)
+        s0 = S.mlime.n_kernel_shifted
         lat = rt.latency(call, n)
-        rows.append({"model": b.name, "explainer": v, **lat})
+        rows.append({"model": b.name, "explainer": v, **lat, "kernel_fallback_events": int(S.mlime.n_kernel_shifted - s0)})
         print(f"[{b.name}] 5.4 {v:26s} n={lat['n']:5d}  p50={lat['p50_ms']:9.2f} ms  p95={lat['p95_ms']:9.2f} ms")
     df = pd.DataFrame(rows)
+    if only:
+        old = os.path.join(out_dir, f"runtime_{b.name}.csv")
+        if os.path.exists(old):
+            prev = pd.read_csv(old)
+            prev = prev[~prev.explainer.isin(df.explainer)]
+            df = pd.concat([prev[[c for c in prev.columns if c in df.columns]], df], ignore_index=True)
+            df = df.drop(columns=[c for c in ("meets_LRD_target_50ms", "meets_100ms_p50", "meets_100ms_p95") if c in df.columns])
     df["meets_LRD_target_50ms"] = np.where(df.explainer.str.startswith("LRD"), df.p95_ms < 50, np.nan)
     df["meets_100ms_p50"] = df.p50_ms < 100
     df["meets_100ms_p95"] = df.p95_ms < 100
@@ -270,19 +281,28 @@ def memory_probe(b: ModelBundle, explainer, seed=0):
     print("MEMPROBE " + json.dumps(res))
 
 
-def run_memory(model, explainers, child_cmd, out_dir):
-    """Orchestrate one fresh child process per explainer; each prints a MEMPROBE json line."""
+def run_memory(model, explainers, child_cmd, out_dir, repeats=3):
+    """
+    Orchestrate fresh child processes per explainer (each prints a MEMPROBE json line). Resident memory on macOS is
+    noisy (memory compression, lazily committed pages), so each explainer is probed `repeats` times in separate fresh
+    processes; the MEDIAN growth is reported with the min-max spread.
+    """
     import subprocess
     rows = []
     for v in explainers:
         t0 = time.time()
-        out = subprocess.run(child_cmd + ["--memory-child", v], capture_output=True, text=True)
-        line = [l for l in out.stdout.splitlines() if l.startswith("MEMPROBE ")]
-        if not line:
-            raise RuntimeError(f"memory probe failed for {model}/{v}:\n{out.stderr[-2000:]}")
-        r = json.loads(line[-1][len("MEMPROBE "):])
-        rows.append(r)
-        print(f"[{model}] 5.4 memory {v:26s} peak resident-memory growth = {r['peak_rss_growth_mb']:7.1f} MB over {r['n']} explanations  ({time.time() - t0:.0f}s)")
+        vals, n, base = [], None, None
+        for _ in range(repeats):
+            out = subprocess.run(child_cmd + ["--memory-child", v], capture_output=True, text=True)
+            line = [l for l in out.stdout.splitlines() if l.startswith("MEMPROBE ")]
+            if not line:
+                raise RuntimeError(f"memory probe failed for {model}/{v}:\n{out.stderr[-2000:]}")
+            r = json.loads(line[-1][len("MEMPROBE "):])
+            vals.append(r["peak_rss_growth_mb"])
+            n, base = r["n"], r["baseline_rss_mb"]
+        rows.append({"model": model, "explainer": v, "n": n, "baseline_rss_mb": base, "peak_rss_growth_mb": float(np.median(vals)),
+                     "peak_rss_growth_min_mb": float(np.min(vals)), "peak_rss_growth_max_mb": float(np.max(vals)), "repeats": repeats})
+        print(f"[{model}] 5.4 memory {v:26s} peak resident-memory growth = {np.median(vals):7.1f} MB (range {np.min(vals):.0f}-{np.max(vals):.0f}) over {n} explanations x {repeats} processes  ({time.time() - t0:.0f}s)")
     df = pd.DataFrame(rows)
-    _save(out_dir, "memory", model, df, {"method": "fresh process per explainer; peak RSS growth, 2 ms sampling"})
+    _save(out_dir, "memory", model, df, {"method": f"fresh process per explainer, {repeats} repeats, median peak RSS growth, 2 ms sampling"})
     return df

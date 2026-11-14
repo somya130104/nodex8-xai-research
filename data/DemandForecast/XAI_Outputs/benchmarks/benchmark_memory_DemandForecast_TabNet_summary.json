@@ -1,0 +1,79 @@
+{
+ "stage": "memory",
+ "model": "DemandForecast_TabNet",
+ "settings": {
+  "method": "fresh process per explainer, 3 repeats, median peak RSS growth, 2 ms sampling"
+ },
+ "rows": [
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "AdaptedSHAP",
+   "n": 30,
+   "baseline_rss_mb": 503.72608,
+   "peak_rss_growth_mb": 16.74445,
+   "peak_rss_growth_min_mb": 15.54842,
+   "peak_rss_growth_max_mb": 17.31789,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 30,
+   "baseline_rss_mb": 496.17306,
+   "peak_rss_growth_mb": 15.08966,
+   "peak_rss_growth_min_mb": 14.99136,
+   "peak_rss_growth_max_mb": 15.8761,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "GradientSHAP",
+   "n": 30,
+   "baseline_rss_mb": 496.23859,
+   "peak_rss_growth_mb": 15.84333,
+   "peak_rss_growth_min_mb": 15.69587,
+   "peak_rss_growth_max_mb": 15.9744,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "ManifoldLIME",
+   "n": 30,
+   "baseline_rss_mb": 494.56742,
+   "peak_rss_growth_mb": 18.75968,
+   "peak_rss_growth_min_mb": 15.72864,
+   "peak_rss_growth_max_mb": 21.02067,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 30,
+   "baseline_rss_mb": 506.3639,
+   "peak_rss_growth_mb": 19.93933,
+   "peak_rss_growth_min_mb": 19.62803,
+   "peak_rss_growth_max_mb": 28.91776,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "VanillaLIME",
+   "n": 30,
+   "baseline_rss_mb": 521.1095,
+   "peak_rss_growth_mb": 15.10605,
+   "peak_rss_growth_min_mb": 8.47053,
+   "peak_rss_growth_max_mb": 17.43258,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "NativeMask",
+   "n": 30,
+   "baseline_rss_mb": 495.3047,
+   "peak_rss_growth_mb": 3.39149,
+   "peak_rss_growth_min_mb": 3.3751,
+   "peak_rss_growth_max_mb": 3.63725,
+   "repeats": 3
+  }
+ ]
+}

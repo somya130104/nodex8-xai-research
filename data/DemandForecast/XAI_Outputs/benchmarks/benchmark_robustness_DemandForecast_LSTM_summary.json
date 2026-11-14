@@ -1,0 +1,118 @@
+{
+ "stage": "robustness",
+ "model": "DemandForecast_LSTM",
+ "settings": {
+  "eps_in": 0.05,
+  "eps_f": 0.07179676532745362,
+  "feasible_share_at_chosen_eps": 0.8625,
+  "noise_rel": 0.01,
+  "iters": 15,
+  "cands": 3,
+  "R4_confirmed_tau_manifold_minus_vanilla": {
+   "mean": -0.08951439202311125,
+   "ci95": [
+    -0.10391364057531649,
+    -0.07274653557977438
+   ],
+   "n": 8
+  }
+ },
+ "rows": [
+  {
+   "model": "DemandForecast_LSTM",
+   "variant": "AdaptedSHAP",
+   "stability_tau_noise": 0.99606,
+   "stability_tau_control": 1.0,
+   "stability_n": 30,
+   "stability_share_of_ceiling": 0.99606,
+   "adv_tau_search": 0.98402,
+   "adv_tau_confirmed": 0.98402,
+   "adv_tau_random_control": 0.98607,
+   "adv_top1_changed": 0.0,
+   "adv_feasible_share": 0.72778,
+   "adv_n": 8.0,
+   "adv_eps_in": 0.05,
+   "adv_eps_f": 0.0718
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "variant": "AdaptedSHAP_zero",
+   "stability_tau_noise": 0.99331,
+   "stability_tau_control": 1.0,
+   "stability_n": 30,
+   "stability_share_of_ceiling": 0.99331,
+   "adv_tau_search": null,
+   "adv_tau_confirmed": null,
+   "adv_tau_random_control": null,
+   "adv_top1_changed": null,
+   "adv_feasible_share": null,
+   "adv_n": null,
+   "adv_eps_in": null,
+   "adv_eps_f": null
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "variant": "GradientSHAP",
+   "stability_tau_noise": 0.84775,
+   "stability_tau_control": 0.84733,
+   "stability_n": 30,
+   "stability_share_of_ceiling": 1.00049,
+   "adv_tau_search": null,
+   "adv_tau_confirmed": null,
+   "adv_tau_random_control": null,
+   "adv_top1_changed": null,
+   "adv_feasible_share": null,
+   "adv_n": null,
+   "adv_eps_in": null,
+   "adv_eps_f": null
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "variant": "ManifoldLIME",
+   "stability_tau_noise": 0.71997,
+   "stability_tau_control": 0.73609,
+   "stability_n": 30,
+   "stability_share_of_ceiling": 0.9781,
+   "adv_tau_search": 0.77369,
+   "adv_tau_confirmed": 0.86065,
+   "adv_tau_random_control": 0.8523,
+   "adv_top1_changed": 0.75,
+   "adv_feasible_share": 0.75278,
+   "adv_n": 8.0,
+   "adv_eps_in": 0.05,
+   "adv_eps_f": 0.0718
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "variant": "ManifoldLIME_stochround",
+   "stability_tau_noise": 0.36005,
+   "stability_tau_control": 0.36534,
+   "stability_n": 30,
+   "stability_share_of_ceiling": 0.98551,
+   "adv_tau_search": null,
+   "adv_tau_confirmed": null,
+   "adv_tau_random_control": null,
+   "adv_top1_changed": null,
+   "adv_feasible_share": null,
+   "adv_n": null,
+   "adv_eps_in": null,
+   "adv_eps_f": null
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "variant": "VanillaLIME",
+   "stability_tau_noise": 0.74341,
+   "stability_tau_control": 0.74579,
+   "stability_n": 30,
+   "stability_share_of_ceiling": 0.99681,
+   "adv_tau_search": 0.94255,
+   "adv_tau_confirmed": 0.95016,
+   "adv_tau_random_control": 0.9539,
+   "adv_top1_changed": 0.125,
+   "adv_feasible_share": 0.75833,
+   "adv_n": 8.0,
+   "adv_eps_in": 0.05,
+   "adv_eps_f": 0.0718
+  }
+ ]
+}

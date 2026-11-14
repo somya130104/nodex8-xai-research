@@ -265,6 +265,17 @@ preprocessing scripts unless you intend to change the feature engineering.
 
 `src/eda_utils.py` — helpers shared by the two EDA scripts (feature summary, single-feature AUC, PSI drift, correlated pairs).
 
+**Phase 5 — the benchmark suite, `src/benchmarks/`**
+
+| File | What it does |
+|---|---|
+| `suite.py` | One interface, `explain(name, U, seed)`, over every explainer variant plus KernelSHAP and two controls, so each test is applied identically |
+| `faithfulness.py` | 5.1 Deletion / insertion curves against a random-ranking control |
+| `synthetic.py` | 5.2 Ground truth: corrupt 3 known features; or a planted-signal MLP whose true drivers are known |
+| `robustness.py` | 5.3 Stability under 1% noise; hill-climbing adversarial search |
+| `runtime.py` | 5.4 p50 / p95 latency and peak resident memory |
+| `pipeline.py`, `assemble.py` | The stages (with the pre-registered decision rules R1-R8 documented in `__init__.py`) and the combined matrix in `data/Benchmark_Suite/` |
+
 **Phase 4 — the Consensus Logic Index**
 
 | File | What it does |
@@ -272,7 +283,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `src/consensus.py` | The math: `weighted_kendall_tau()` (hyperbolic top-weighted, written from scratch and checked against scipy), `cli()` per the proposal's Equation 1, the GREEN/AMBER/RED gate and its calibration, the reviewer note naming the disputed features, and `model_rashomon_index()` — cross-*model* agreement, which is **not** the CLI |
 | `src/consensus_analysis.py` | Shared tables for both datasets: per-instance CLI frame, group tables with bootstrap CIs, the faithfulness link, the high-vs-low CLI sanity check |
 
-`src/autoencoder_models.py` holds the importable AE/VAE classes; `tests/test_explainers.py` and `tests/test_consensus.py` are the pytest suites (`python3 -m pytest tests -q`).
+`src/autoencoder_models.py` holds the importable AE/VAE classes; `tests/test_explainers.py`, `tests/test_consensus.py` and `tests/test_benchmarks.py` are the pytest suites (`python3 -m pytest tests -q`).
 
 ### TradeFraud — `data/TradeFraud/scripts/`
 
@@ -307,6 +318,9 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` from `Data/variable_dictionary.csv` |
 | `run_tri_explainer_ae_vae.py` | Phase 3: Adapted SHAP + Manifold-LIME + LRD on the autoencoder and VAE (251 clients) |
 | `run_tri_explainer_tabnet.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet (LRD not applicable), plus TabNet's native masks |
+| `run_benchmarks.py` | Phase 5: faithfulness, corruption ground truth (AE, VAE), planted-signal test, stability / adversarial, runtime, memory — pick stages with `--stages`; runtime must run alone |
+| `run_cli_vs_groundtruth.py` | Phase 5 extra: does a low CLI mean a wrong explanation? (checks CLI against the known corrupted features) |
+| `posthoc_manifold_lime_diagnostic.py` | Phase 5 post-hoc (not pre-registered): why Manifold-LIME is below vanilla LIME on the corruption test |
 | `run_eda.py` | Exploratory data analysis: split overview, feature shape (missing / zeros / skew), dispute rate by segment, single-feature signal, redundancy, drift. Writes `EDA_Outputs/` (`EDA_SUMMARY.md` is the readable report) |
 | `run_consensus_cli.py` | Phase 4: per-client CLI and review gate for the AE, VAE and TabNet; calibrates on Validation, explains and scores four out-of-time periods; writes `XAI_Outputs/consensus/` |
 | `run_baseline_lime.py` | The same three levels using LIME |
@@ -326,6 +340,7 @@ preprocessing scripts unless you intend to change the feature engineering.
 | `build_feature_hierarchy.py` | Builds `XAI_Outputs/feature_hierarchy.csv` (hand-built groups — no variable dictionary exists for this dataset) |
 | `cohort_utils.py` | Shared `assign_day_type()` used by both the SHAP and LIME scripts |
 | `run_tri_explainer_tabnet_lstm.py` | Phase 3.5: Adapted SHAP + Manifold-LIME on TabNet and the 28-day LSTM |
+| `run_benchmarks.py` | Phase 5: faithfulness, planted-signal test, stability / adversarial, runtime, memory for TabNet and the LSTM (`--stages`; runtime must run alone) |
 | `run_eda.py` | Exploratory data analysis: target distribution, brands and products, calendar / promotion effects, lag correlations, redundancy, drift. Writes `EDA_Outputs/` (`EDA_SUMMARY.md` is the readable report) |
 | `run_consensus_cli.py` | Phase 4: CLI variant for TabNet (K=3 with its native mask) and two-explainer agreement for the LSTM, on OOS and the three OOT months |
 | `extract_tabnet_masks.py` | TabNet's native masks |

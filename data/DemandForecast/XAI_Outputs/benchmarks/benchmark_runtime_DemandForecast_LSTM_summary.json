@@ -1,0 +1,89 @@
+{
+ "stage": "runtime",
+ "model": "DemandForecast_LSTM",
+ "settings": {
+  "n": 200,
+  "n_kernelshap": 30,
+  "hardware_note": "single process, CPU, nothing else running"
+ },
+ "rows": [
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "AdaptedSHAP",
+   "n": 200,
+   "p50_ms": 138.14473,
+   "p95_ms": 143.75935,
+   "mean_ms": 138.54091,
+   "max_ms": 164.824,
+   "kernel_fallback_events": 0,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 200,
+   "p50_ms": 13.92296,
+   "p95_ms": 14.9023,
+   "mean_ms": 13.93368,
+   "max_ms": 15.54421,
+   "kernel_fallback_events": 0,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "GradientSHAP",
+   "n": 200,
+   "p50_ms": 12.41904,
+   "p95_ms": 13.56311,
+   "mean_ms": 12.50322,
+   "max_ms": 19.89408,
+   "kernel_fallback_events": 0,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "ManifoldLIME",
+   "n": 200,
+   "p50_ms": 363.42935,
+   "p95_ms": 486.57492,
+   "mean_ms": 378.76404,
+   "max_ms": 751.10475,
+   "kernel_fallback_events": 0,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 200,
+   "p50_ms": 359.19065,
+   "p95_ms": 392.6912,
+   "mean_ms": 362.26535,
+   "max_ms": 472.71488,
+   "kernel_fallback_events": 6,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "VanillaLIME",
+   "n": 200,
+   "p50_ms": 363.63273,
+   "p95_ms": 749.39246,
+   "mean_ms": 428.96283,
+   "max_ms": 1452.56946,
+   "kernel_fallback_events": 0,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  }
+ ]
+}

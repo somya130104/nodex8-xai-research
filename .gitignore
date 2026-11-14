@@ -37,3 +37,8 @@ run_log*.txt
 
 # EDA charts are embedded in EDA_SUMMARY.md, so track them
 !data/*/EDA_Outputs/plots/*.png
+
+# Phase 5 benchmark outputs: the final matrix, decisions and charts are the deliverable
+!data/Benchmark_Suite/*.csv
+!data/Benchmark_Suite/plots/*.png
+logs_tmp/

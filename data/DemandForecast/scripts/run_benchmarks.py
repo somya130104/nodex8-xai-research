@@ -140,6 +140,7 @@ def main():
     ap.add_argument("--models", default=",".join(ALL_MODELS))
     ap.add_argument("--stages", default="faithfulness,planted,robustness")
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--explainers", default=None, help="runtime stage only: re-measure just these (comma-separated) and merge")
     ap.add_argument("--memory-child", default=None, help="internal: probe one explainer in this fresh process and exit")
     a = ap.parse_args()
     stages = a.stages.split(",")
@@ -164,7 +165,7 @@ def main():
         if "robustness" in stages:
             P.run_robustness(b, out)
         if "runtime" in stages:
-            P.run_runtime(b, out)
+            P.run_runtime(b, out, only=a.explainers.split(',') if a.explainers else None)
         if "memory" in stages:
             P.run_memory(m, b.suite.available, [sys.executable, os.path.abspath(__file__), "--models", m] + (["--quick"] if a.quick else []), out)
 

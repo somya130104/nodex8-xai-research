@@ -501,3 +501,21 @@ def test_manifold_lime_stochround_mode_sees_a_low_count_feature():
     assert moved_sto > 2 * moved_det                                  # stochastic rounding moves it far more often (~E|noise| ~ 24%)
     a = ml.explain(x, "manifold_stochround", seed=0).coef[0]
     assert abs(a - 3.0) < 0.9                                         # and the true coefficient is now recoverable
+
+
+def test_manifold_lime_kernel_underflow_falls_back_instead_of_crashing_and_changes_nothing_else():
+    rng = np.random.RandomState(3)
+    U = rng.normal(size=(400, 5))
+    f = lambda Z: Z @ np.array([1.0, -2.0, 0.5, 0.0, 3.0])
+    x = U[0]
+    normal = ManifoldLIME(f, U, scale=0.3, n_samples=1200)
+    r0 = normal.explain(x, "manifold", seed=0)
+    assert not r0.kernel_shifted and normal.n_kernel_shifted == 0
+    # force every weight to underflow with an absurdly narrow kernel
+    narrow = ManifoldLIME(f, U, scale=0.3, n_samples=1200, kernel_width_factor=1e-4)
+    assert not np.any(narrow.weights(x, narrow.perturb(x, "manifold", np.random.RandomState(0))[0], "manifold") > 0)
+    r1 = narrow.explain(x, "manifold", seed=0)                       # used to raise ValueError
+    assert r1.kernel_shifted and narrow.n_kernel_shifted == 1
+    assert np.all(np.isfinite(r1.attribution)) and r1.mean_weight > 0
+    # the shifted kernel is the same kernel up to a constant factor: on a linear model it still finds the right coefficients
+    assert np.allclose(r1.coef, [1.0, -2.0, 0.5, 0.0, 3.0], atol=0.3)

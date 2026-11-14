@@ -1,0 +1,95 @@
+{
+ "stage": "runtime",
+ "model": "DemandForecast_TabNet",
+ "settings": {
+  "n": 1000,
+  "n_kernelshap": 30,
+  "hardware_note": "single process, CPU, nothing else running"
+ },
+ "rows": [
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "AdaptedSHAP",
+   "n": 1000,
+   "p50_ms": 103.38667,
+   "p95_ms": 105.37106,
+   "mean_ms": 103.92687,
+   "max_ms": 193.65892,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": false,
+   "meets_100ms_p95": false
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 1000,
+   "p50_ms": 10.2966,
+   "p95_ms": 10.48634,
+   "mean_ms": 10.3212,
+   "max_ms": 11.60212,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "GradientSHAP",
+   "n": 1000,
+   "p50_ms": 6.4314,
+   "p95_ms": 6.64648,
+   "mean_ms": 6.46013,
+   "max_ms": 8.77479,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "ManifoldLIME",
+   "n": 1000,
+   "p50_ms": 32.79246,
+   "p95_ms": 34.04778,
+   "mean_ms": 32.95632,
+   "max_ms": 70.62267,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 1000,
+   "p50_ms": 35.20812,
+   "p95_ms": 37.6755,
+   "mean_ms": 35.47063,
+   "max_ms": 51.28588,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "VanillaLIME",
+   "n": 1000,
+   "p50_ms": 34.23612,
+   "p95_ms": 37.21794,
+   "mean_ms": 34.58833,
+   "max_ms": 66.494,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  },
+  {
+   "model": "DemandForecast_TabNet",
+   "explainer": "NativeMask",
+   "n": 1000,
+   "p50_ms": 1.65375,
+   "p95_ms": 1.76215,
+   "mean_ms": 1.67565,
+   "max_ms": 2.93654,
+   "meets_LRD_target_50ms": null,
+   "meets_100ms_p50": true,
+   "meets_100ms_p95": true
+  }
+ ]
+}

@@ -1,0 +1,69 @@
+{
+ "stage": "memory",
+ "model": "DemandForecast_LSTM",
+ "settings": {
+  "method": "fresh process per explainer, 3 repeats, median peak RSS growth, 2 ms sampling"
+ },
+ "rows": [
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "AdaptedSHAP",
+   "n": 10,
+   "baseline_rss_mb": 883.86765,
+   "peak_rss_growth_mb": 25.47712,
+   "peak_rss_growth_min_mb": 22.85568,
+   "peak_rss_growth_max_mb": 25.77203,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "AdaptedSHAP_zero",
+   "n": 10,
+   "baseline_rss_mb": 855.27757,
+   "peak_rss_growth_mb": 23.7568,
+   "peak_rss_growth_min_mb": 23.18336,
+   "peak_rss_growth_max_mb": 24.33024,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "GradientSHAP",
+   "n": 10,
+   "baseline_rss_mb": 937.60717,
+   "peak_rss_growth_mb": 26.7223,
+   "peak_rss_growth_min_mb": 19.00544,
+   "peak_rss_growth_max_mb": 28.65562,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "ManifoldLIME",
+   "n": 10,
+   "baseline_rss_mb": 841.02349,
+   "peak_rss_growth_mb": 198.09894,
+   "peak_rss_growth_min_mb": 196.11648,
+   "peak_rss_growth_max_mb": 199.3769,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "ManifoldLIME_stochround",
+   "n": 10,
+   "baseline_rss_mb": 884.31002,
+   "peak_rss_growth_mb": 200.1961,
+   "peak_rss_growth_min_mb": 198.37747,
+   "peak_rss_growth_max_mb": 227.70483,
+   "repeats": 3
+  },
+  {
+   "model": "DemandForecast_LSTM",
+   "explainer": "VanillaLIME",
+   "n": 10,
+   "baseline_rss_mb": 848.96973,
+   "peak_rss_growth_mb": 185.90925,
+   "peak_rss_growth_min_mb": 172.62182,
+   "peak_rss_growth_max_mb": 186.10586,
+   "repeats": 3
+  }
+ ]
+}

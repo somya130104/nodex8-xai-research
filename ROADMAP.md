@@ -540,7 +540,7 @@ the ranking or the τ computation, not a real finding.
 
 ---
 
-## Phase 5 — The Benchmark Suite
+## Phase 5 — The Benchmark Suite ✅ Done
 
 **Duration estimate:** ~2 weeks (can overlap with the tail end of Phase 4)
 **Depends on:** Phase 3, Phase 4
@@ -593,12 +593,17 @@ deliverable — it's "the Comprehensive Benchmark Evaluation Suite" named in the
 
 ### Phase 5 deliverables checklist
 
-- [ ] Deletion/insertion faithfulness curves for every (model, explainer) pair
-- [ ] Synthetic ground-truth precision@3 table
-- [ ] Stability-under-noise scores
-- [ ] A basic adversarial-robustness comparison
-- [ ] Latency (p50/p95) and memory table
-- [ ] The final combined benchmark matrix
+- [x] Deletion/insertion faithfulness curves for every (model, explainer) pair
+- [x] Synthetic ground-truth precision@3 table
+- [x] Stability-under-noise scores
+- [x] A basic adversarial-robustness comparison
+- [x] Latency (p50/p95) and memory table
+- [x] The final combined benchmark matrix
+
+> **Status (see ARCHITECTURE.md Section 5, Phase 5):** all six items done, for all five models, against KernelSHAP and two controls (a random ranking and
+> "largest |z-score|), with the decision rules committed before any result. Deviations from this roadmap: the synthetic test has two parts (corruption test on the
+> autoencoders; a planted-signal MLP as a stand-in for supervised models); the adversarial search is deliberately weak (120 candidates); memory is measured in fresh
+> processes. Two analyses were added: a post-hoc diagnostic of Manifold-LIME's ground-truth result, and a check of CLI against ground truth.
 
 ### How to know Phase 5 is done
 
@@ -743,7 +748,7 @@ Code review with NodeX8, a project presentation, and a final walkthrough of the 
 | 2 | Autoencoder rebuild, VAE, real LSTM | ~3 weeks | Phase 0 | ✅ **Done** |
 | 3 | Adapted SHAP, Manifold-LIME, LRD | ~4–5 weeks | Phase 2 | ✅ **Done** |
 | 4 | CLI, weighted τ, uncertainty gate | ~2 weeks | Phase 3 | ✅ **Done** |
-| 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 | |
+| 5 | Faithfulness, stability, latency benchmarks | ~2 weeks | Phases 3–4 | ✅ **Done** |
 | 6 | `claris_deep_xai` SDK packaging | ~2 weeks | Phases 3–5 | |
 | 7 | Paper, thesis, handover | ~3 weeks | Everything | |
 
