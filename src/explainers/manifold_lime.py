@@ -40,6 +40,8 @@ Manifold-LIME changes only how the copies are generated and weighted:
 Modes (so each realism constraint can be separated in an ablation):
   'manifold'          covariance-shaped noise + range clip + integer snapping  (the method)
   'manifold_noround'  covariance-shaped noise + range clip                    (ablation)
+  'manifold_stochround'  as 'manifold' but integer columns are rounded STOCHASTICALLY
+                      (Phase 5 candidate fix for the low-count blind spot; needs snap_stochastic)
   'independent'       vanilla LIME-style: independent noise + range clip       (comparison arm)
 
 For a controlled comparison the SAME class also produces "vanilla" LIME-style
@@ -68,7 +70,7 @@ class LimeResult:
 class ManifoldLIME:
     def __init__(self, black_box, U_reference, scale: float = 0.3, n_samples: int = 2000,
                  ridge_alpha: float = 1.0, kernel_width_factor: float = 1.0,
-                 reference_point=None, snap=None):
+                 reference_point=None, snap=None, snap_stochastic=None):
         """
         black_box: callable (n, p) float array -> (n,) array — the scalar being
                    explained, evaluated in the same coordinate system as U_reference.
@@ -85,6 +87,7 @@ class ManifoldLIME:
         self.ridge_alpha = ridge_alpha
         self.kernel_width_factor = kernel_width_factor
         self.snap = snap
+        self.snap_stochastic = snap_stochastic      # callable (Z, rng) -> Z, for mode 'manifold_stochround'
 
         lw = LedoitWolf().fit(U)
         self.shrinkage = float(lw.shrinkage_)
@@ -100,23 +103,27 @@ class ManifoldLIME:
         s = self.scale if scale is None else scale
         x = np.asarray(x, dtype=np.float64).ravel()
         eps = rng.standard_normal((self.n_samples, self.p))
-        if mode in ("manifold", "manifold_noround"):
+        if mode in ("manifold", "manifold_noround", "manifold_stochround"):
             delta = s * (eps @ self.L.T)
         elif mode == "independent":
             delta = s * eps * self.std
         else:
-            raise ValueError("mode must be 'manifold', 'manifold_noround' or 'independent'")
+            raise ValueError("mode must be 'manifold', 'manifold_noround', 'manifold_stochround' or 'independent'")
         raw = x + delta
         Z = np.clip(raw, np.minimum(self.lo, x), np.maximum(self.hi, x))   # never clip x itself
         frac_clipped = float(np.mean(Z != raw))
         if mode == "manifold" and self.snap is not None:
             Z = np.asarray(self.snap(Z), dtype=np.float64)
+        elif mode == "manifold_stochround":
+            if self.snap_stochastic is None:
+                raise ValueError("mode 'manifold_stochround' needs snap_stochastic")
+            Z = np.asarray(self.snap_stochastic(Z, rng), dtype=np.float64)
         return Z, frac_clipped
 
     def weights(self, x, Z, mode: str, scale=None):
         s = self.scale if scale is None else scale
         d = Z - np.asarray(x, dtype=np.float64).ravel()
-        if mode in ("manifold", "manifold_noround"):
+        if mode in ("manifold", "manifold_noround", "manifold_stochround"):
             d2 = ((d @ self.prec) * d).sum(axis=1)      # BLAS matmul (a 3-operand einsum is an unoptimised O(n p^2) loop)
             width = self.kernel_width_factor * s * np.sqrt(self.p)
         else:

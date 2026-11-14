@@ -45,3 +45,40 @@ def snap_via_standard_scaler(scaler, int_mask, tile: int = 1):
         raw[:, mask] = np.round(raw[:, mask])
         return (raw - mean) / scale
     return snap
+
+
+def _stochastic_round(raw, mask, rng):
+    """
+    Round the masked columns to a neighbouring integer with probability equal to the
+    fractional part (2.3 -> 3 with p=0.3, else 2). Unlike np.round this keeps the value
+    integer yet lets a count of 0 become 1 some of the time, so Manifold-LIME can see
+    low-count features (ARCHITECTURE.md, Phase 4 finding 6). The expectation of the
+    rounded value equals the unrounded one.
+    """
+    v = raw[:, mask]
+    lo = np.floor(v + 1e-9)                     # guards 2.9999999999 / -1e-12 from numerical noise
+    frac = np.clip(v - lo, 0.0, 1.0)
+    raw[:, mask] = lo + (rng.random_sample(v.shape) < frac)
+    return raw
+
+
+def snap_stochastic_via_preprocessor(pre, int_mask):
+    """Stochastic-rounding counterpart of snap_via_preprocessor; callable is snap(Z, rng)."""
+    int_mask = np.asarray(int_mask, dtype=bool)
+
+    def snap(Z, rng):
+        raw = _stochastic_round(pre.inverse_transform(Z), int_mask, rng)
+        return pre.transform(pd.DataFrame(raw, columns=pre.feat_cols)).astype(np.float64)
+    return snap
+
+
+def snap_stochastic_via_standard_scaler(scaler, int_mask, tile: int = 1):
+    """Stochastic-rounding counterpart of snap_via_standard_scaler; callable is snap(Z, rng)."""
+    mask = np.tile(np.asarray(int_mask, dtype=bool), tile)
+    mean = np.tile(scaler.mean_, tile)
+    scale = np.tile(scaler.scale_, tile)
+
+    def snap(Z, rng):
+        raw = _stochastic_round(np.asarray(Z, dtype=np.float64) * scale + mean, mask, rng)
+        return (raw - mean) / scale
+    return snap

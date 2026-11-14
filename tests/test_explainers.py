@@ -467,3 +467,37 @@ def test_manifold_lime_never_clips_the_instance_itself():
     Z_old = np.clip(x_in + 0.3 * (np.random.RandomState(2).standard_normal((800, 4)) @ ml.L.T), ml.lo, ml.hi)
     Z_new, _ = ml.perturb(x_in, "manifold", np.random.RandomState(2))
     assert np.allclose(Z_old, Z_new)
+
+
+def test_stochastic_rounding_is_integer_unbiased_and_lets_zeros_move():
+    from src.explainers.snapping import _stochastic_round
+    rng = np.random.RandomState(0)
+    raw = np.full((20000, 3), 0.3)
+    raw[:, 1] = 2.0                               # already integer: must not move
+    raw[:, 2] = -1e-12                            # numerical dust below zero: must stay 0
+    out = _stochastic_round(raw.copy(), np.array([True, True, True]), rng)
+    assert np.all(np.mod(out, 1) == 0)                              # always whole numbers
+    assert abs(out[:, 0].mean() - 0.3) < 0.02                        # unbiased: E[round(0.3)] = 0.3
+    assert set(np.unique(out[:, 0])) == {0.0, 1.0}                   # a count of 0 CAN become 1 (np.round never would)
+    assert np.all(out[:, 1] == 2.0) and np.all(out[:, 2] == 0.0)
+
+
+def test_manifold_lime_stochround_mode_sees_a_low_count_feature():
+    """Deterministic rounding freezes a count that is 0 for the instance; stochastic rounding lets it vary."""
+    rng = np.random.RandomState(1)
+    U = rng.normal(size=(600, 4))
+    int_cols = np.array([True, False, False, False])
+    def snap(Z):
+        Z = Z.copy(); Z[:, 0] = np.round(Z[:, 0]); return Z
+    def snap_s(Z, r):
+        from src.explainers.snapping import _stochastic_round
+        return _stochastic_round(Z.copy(), int_cols, r)
+    ml = ManifoldLIME(lambda Z: 3.0 * Z[:, 0], U, scale=0.3, n_samples=1500, snap=snap, snap_stochastic=snap_s)
+    x = np.zeros(4); x[0] = 0.0
+    Zd, _ = ml.perturb(x, "manifold", np.random.RandomState(2))
+    Zs, _ = ml.perturb(x, "manifold_stochround", np.random.RandomState(2))
+    moved_det, moved_sto = (Zd[:, 0] != 0).mean(), (Zs[:, 0] != 0).mean()
+    assert moved_det < 0.13                                           # np.round only moves a 0 when |noise| > 0.5 (~10% at sigma 0.3)
+    assert moved_sto > 2 * moved_det                                  # stochastic rounding moves it far more often (~E|noise| ~ 24%)
+    a = ml.explain(x, "manifold_stochround", seed=0).coef[0]
+    assert abs(a - 3.0) < 0.9                                         # and the true coefficient is now recoverable
