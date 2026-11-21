@@ -75,8 +75,7 @@ that matters for the rest of this document:
   On the validation clients, single lifetime-volume features reach AUC 0.71–0.76 — at or above the best trained model (0.716, within sampling error).
 - **DemandForecast is the opposite:** a real time series with a large shift between DEV and OOS (25 of 51 features PSI > 0.25, because OOS holds
   three different brands) and moderate shift in the out-of-time months; 38–46% of out-of-time rows come from products DEV never contained.
-- Both datasets: heavy skew (263 of 271 TradeFraud features |skew| > 2), many near-duplicate features (486 TradeFraud pairs with |ρ| ≥ 0.95),
-  and no missing values.
+- Both datasets exhibit substantial feature skewness (263 of 271 TradeFraud features with |skew| > 2), high multicollinearity (486 feature pairs with |ρ| ≥ 0.95), and no missing values.
 
 ---
 
